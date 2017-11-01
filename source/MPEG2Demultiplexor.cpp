@@ -26,20 +26,21 @@ int MPEG2Demultiplexor::Run()
     ofstream audioStreamFile;
     ofstream videoStreamFile;
     TransportStream transportStream(transportStreamFile);
-    PEStream audioStream(audioStreamFile);
-    PEStream videoStream(videoStreamFile);
+//    PEStream audioStream(audioStreamFile);
+//    PEStream videoStream(videoStreamFile);
     bool havePacket = transportStream.ReadPacket(transportStreamPacket);
     while (havePacket)
     {
-        cout << "Read packet " << transportStream.PacketIndex() << endl;
-        if (transportStreamPacket.IsAudio())
-        {
-            audioStream.WritePESPacket(transportStreamPacket.Data(), transportStreamPacket.Size());
-        }
-        if (transportStreamPacket.IsVideo())
-        {
-            videoStream.WritePESPacket(transportStreamPacket.Data(), transportStreamPacket.Size());
-        }
+        transportStream.DisplayPacketContents(transportStreamPacket);
+
+//        if (transportStreamPacket.IsAudio())
+//        {
+//            audioStream.WritePESPacket(transportStreamPacket.Data(), transportStreamPacket.PayloadSize());
+//        }
+//        if (transportStreamPacket.IsVideo())
+//        {
+//            videoStream.WritePESPacket(transportStreamPacket.Data(), transportStreamPacket.PayloadSize());
+//        }
         havePacket = transportStream.ReadPacket(transportStreamPacket);
     }
 

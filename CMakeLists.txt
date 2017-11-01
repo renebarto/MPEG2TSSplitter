@@ -1,17 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
-project(MPEG2TS_demux)
 
-set(CMAKE_CXX_STANDARD 11)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-set(SOURCE_FILES
-    main.cpp
-    MPEG2Demultiplexor.cpp
-    TransportStream.cpp
-    TSPacket.cpp
-    PEStream.cpp
-    MPEG2Demultiplexor.hpp
-    TransportStream.hpp
-    TSPacket.hpp
-    PEStream.hpp PESPacket.cpp PESPacket.hpp)
-
-add_executable(MPEG2TS_demux ${SOURCE_FILES})
+add_subdirectory(source)
+add_subdirectory(tests)
