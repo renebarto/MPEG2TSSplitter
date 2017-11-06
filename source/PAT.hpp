@@ -3,29 +3,37 @@
 #include <cstdint>
 #include <deque>
 #include <string>
-#include "TSDefinitions.hpp"
+#include <vector>
+#include "PSI.hpp"
 
 namespace Media
 {
 
-class PAT
+struct ProgramAssociation
+{
+    uint16_t programNumber;
+    PIDType pid;
+};
+
+using ProgramAssociationList = std::vector<ProgramAssociation>;
+
+class PAT : public PSI
 {
 public:
     PAT();
 
-    bool Parse(std::deque<uint8_t> & buffer);
-    bool IsValid() const;
+    bool Parse(std::deque<uint8_t> & data) override;
+    bool IsValid() const override;
 
-    uint16_t GetPID_PMT() const { return _pidPMT;}
-    uint16_t GetPID_NIT() const { return _pidNIT;}
+    bool IsPMT(PIDType pid) const;
+    bool IsNIT(PIDType pid) const { return pid == _pidNIT;}
 
-    std::string ToString() const;
+    void DisplayContents() const override;
 
 private:
-    TableID _tableID;
-    uint16_t _sectionLength;
-    uint16_t _pidPMT;
-    uint16_t _pidNIT;
+    uint16_t _transportStreamID;
+    ProgramAssociationList _programInfo;
+    PIDType _pidNIT;
 };
 
 

@@ -37,7 +37,8 @@ set(UNIT_TEST_OPTIONS
 set(UNIT_TEST_LINK_OPTIONS)
 
 set(UNIT_TEST_DEPENDENCIES
-    MPEG2SplitterLib
+    ${TOOLS_LIB}
+    ${MEDIA_LIB}
     gtest_main)
 
 set(UNIT_TEST_LIBS

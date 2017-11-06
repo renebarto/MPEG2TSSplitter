@@ -1,43 +1,50 @@
 #include <iostream>
-#include "MPEG2Demultiplexor.hpp"
+#include <iomanip>
+#include "MPEG2Splitter.hpp"
+#include "CommandLineOptionsParser.hpp"
+#include "tools/Console.hpp"
+#include "TSDefinitions.hpp"
 
 using namespace std;
 
-string StripPath(const string & path)
+int main(int argc, const char * argv[])
 {
-    size_t lastSlashPos = path.find_last_of('/');
-    if (lastSlashPos != string::npos)
-        return path.substr(lastSlashPos + 1);
-}
+    CommandLineOptionsParser parser(Tools::DefaultConsole());
 
-int Usage(const string & applicationPath, bool error)
-{
-    string applicationName = StripPath(applicationPath);
-
-    cout << "Usage " << applicationName << " [-h] [file]" << endl << endl
-         << "If -h is specified, prints this help." << endl << endl
-         << "One file must be specified. This file must be a valid MPEG2 TS stream, which will be " << endl
-         << "de-multiplexed into an elementary video and audio stream. Only the first audio and video" << endl
-         << "stream will be extracted and saved into files." << endl
-         << "File extensions will be chosen such that the stream can be played in a media player, such as VLC.";
-    return (error) ? EXIT_FAILURE : EXIT_SUCCESS;
-}
-
-bool EqualIgnoreCase(const string &a , const string & b)
-{
-    return std::equal(a.begin(), a.end(), b.begin(),
-                      [](const char & a, const char & b)
-                      {
-                          return (std::tolower(a) == std::tolower(b));
-                      });
-}
-
-int main(int argc, char * argv[])
-{
-    if ((argc < 2) || (argc > 2))
-        return Usage(argv[0], true);
-    if (EqualIgnoreCase(argv[1], "-h"))
-        return Usage(argv[0], false);
-    Media::MPEG2Demultiplexor demux(argv[1]);
+    if (!parser.Parse(argc, argv))
+        return EXIT_FAILURE;
+    string path = parser._inputPath;
+    if (path.empty())
+    {
+        Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Red) << "No input path specified"
+                                << Tools::fgcolor(Tools::ConsoleColor::Default) << endl;
+        Tools::DefaultConsole() << parser.GetHelp("MPEG2TS-splitter");
+        return EXIT_FAILURE;
+    }
+    Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Yellow) << "Splitting file: " << path
+                            << Tools::fgcolor(Tools::ConsoleColor::Default) << endl;
+    Media::MPEG2Splitter demux(path);
+    if (parser._audioPID != static_cast<uint16_t>(Media::PIDType::NULL_PACKET))
+    {
+        Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Green) << "Using predefined audio PID: "
+                                << hex << setw(4) << setfill('0') << parser._audioPID << dec
+                                << Tools::fgcolor(Tools::ConsoleColor::Default) << endl;
+        demux.SetAudioPID(static_cast<Media::PIDType>(parser._audioPID));
+    } else
+    {
+        Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Green) << "Using first audio PID found"
+                                << Tools::fgcolor(Tools::ConsoleColor::Default) << endl;
+    }
+    if (parser._videoPID != static_cast<uint16_t>(Media::PIDType::NULL_PACKET))
+    {
+        Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Green) << "Using predefined video PID: "
+                                << hex << setw(4) << setfill('0') << parser._videoPID << dec
+                                << Tools::fgcolor(Tools::ConsoleColor::Default) << endl;
+        demux.SetVideoPID(static_cast<Media::PIDType>(parser._videoPID));
+    } else
+    {
+        Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Green) << "Using first video PID found"
+                                << Tools::fgcolor(Tools::ConsoleColor::Default) << endl;
+    }
     return demux.Run();
 }

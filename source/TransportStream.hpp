@@ -5,6 +5,8 @@
 #include <vector>
 #include "TSPacket.hpp"
 #include "PAT.hpp"
+#include "PMT.hpp"
+#include "PESPacket.hpp"
 
 namespace Media
 {
@@ -21,22 +23,34 @@ public:
     bool ReadPacket(TSPacket & packet);
     size_t PacketIndex() const { return _packetIndex; }
 
-    bool IsPSI(uint16_t pid);
-    const PAT & GetPAT() { return _PAT; }
+    void SetAudioPID(PIDType pid)
+    {
+        _audioPID = pid;
+    }
+    void SetVideoPID(PIDType pid)
+    {
+        _videoPID = pid;
+    }
 
-    void DisplayPacketContents(const TSPacket & packet);
+    bool IsPSI(PIDType pid);
+    const PAT & GetPAT() { return _PAT; }
 
 private:
     std::istream & _stream;
     size_t _packetIndex;
+    bool _verbose;
 
     std::vector<uint8_t> _TSBuffer;
     std::deque<uint8_t> _PATBuffer;
     PAT _PAT; // Program Association Table
-    int _PMT; // Program Map Table
-    int _CAT; // Conditional Access Table
-    int _NIT; // Network Information Table
-    int _TSDT; // Transport Stream Description Table
+    std::deque<uint8_t> _PMTBuffer;
+    PMT _PMT; // Program Map Table
+    PIDType _audioPID;
+    PIDType _videoPID;
+    std::deque<uint8_t> _audioBuffer;
+    PESPacket _audioPacket;
+    std::deque<uint8_t> _videoBuffer;
+    PESPacket _videoPacket;
 };
 
 } // namespace Media
