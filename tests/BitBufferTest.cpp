@@ -2,7 +2,7 @@
 
 #include "tools/BitBuffer.hpp"
 
-namespace Media {
+namespace Tools {
 namespace Test {
 
 class BitBufferTest : public ::testing::Test
@@ -181,4 +181,4 @@ TEST_F(BitBufferTest, SkipBytes)
 }
 
 } // namespace Test
-} // namespace Media
+} // namespace Tools

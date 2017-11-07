@@ -1,4 +1,4 @@
-#include "BitBuffer.hpp"
+#include "tools/BitBuffer.hpp"
 
 #include <cassert>
 #include <stdexcept>

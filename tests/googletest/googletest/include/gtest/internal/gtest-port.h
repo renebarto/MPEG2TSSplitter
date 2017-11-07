@@ -728,7 +728,7 @@ using ::std::tuple_size;
 #   undef BOOST_HAS_TR1_TUPLE
 #  endif  // BOOST_HAS_TR1_TUPLE
 
-// This prevents <boost/tr1/detail/config.hpp>, which defines
+// This prevents <boost/tr1/detail/config.hpp", which defines
 // BOOST_HAS_TR1_TUPLE, from being #included by Boost's <tuple>.
 #  define BOOST_TR1_DETAIL_CONFIG_HPP_INCLUDED
 #  include <tuple>  // IWYU pragma: export  // NOLINT

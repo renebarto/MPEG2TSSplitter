@@ -4,6 +4,7 @@
 #include <climits>
 #include <cctype>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <cstring>
 #include "tools/Console.hpp"
@@ -96,4 +97,22 @@ bool IsEqualIgnoreCase(const char * lhs, const char * rhs)
     return strcasecmp(lhs, rhs) == 0;
 }
 
+void ThrowOnError(const char * functionName, const char * fileName, int line, int errorCode)
+{
+    if (errorCode != 0)
+    {
+        ostringstream stream;
+        if (functionName != nullptr)
+            stream << "in " << functionName;
+        if (fileName != nullptr)
+        {
+            stream << " [" << fileName;
+            if (line > 0)
+                stream << ":" << line;
+            stream << "]";
+        }
+        stream << " errno=" << errorCode << " (0x" << Serialize(errorCode, 16) << "): " << '"' << strerror(errorCode) << '"';
+        throw runtime_error(stream.str());
+    }
+}
 } // namespace Tools

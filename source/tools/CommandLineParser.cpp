@@ -607,8 +607,8 @@ string CommandLineParser::GetHelp(const string & applicationName, bool mainHelp 
     return GetHelp(applicationName, mainHelp, CommandLineOptionGroup::Ptr());
 }
 
-string CommandLineParser::GetHelp(const string & applicationName, bool mainHelp,
-                                        const CommandLineOptionGroup::Ptr group) const
+string CommandLineParser::GetHelp(const string & applicationName, bool mainHelp PARAMETER_NOT_USED,
+                                  const CommandLineOptionGroup::Ptr group) const
 {
     string strippedPath = LastPartOfPath(applicationName);
     const int indentOptions = 2;

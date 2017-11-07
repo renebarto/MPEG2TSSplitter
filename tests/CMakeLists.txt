@@ -25,6 +25,7 @@ target_link_libraries(gtest_main gtest)
 
 set(UNIT_TEST_DEFINITIONS
     ${COMPILER_DEFINITIONS_CXX}
+    TEST_DATA_ROOT="${TESTDATAROOT}"
     UNIT_TEST)
 
 set(UNIT_TEST_INCLUDE_DIRS
@@ -37,8 +38,8 @@ set(UNIT_TEST_OPTIONS
 set(UNIT_TEST_LINK_OPTIONS)
 
 set(UNIT_TEST_DEPENDENCIES
-    ${TOOLS_LIB}
-    ${MEDIA_LIB}
+    Media
+    Tools
     gtest_main)
 
 set(UNIT_TEST_LIBS
@@ -55,7 +56,7 @@ set(UNIT_TEST_SOURCES
 set(UNIT_TEST_INPUT
     ${UNIT_TEST_SOURCES}
     ${UNIT_TEST_INCLUDES}
-    )
+    MPEG2SplitterTest.cpp)
 
 display_list("Defines                     : " ${UNIT_TEST_DEFINITIONS} )
 display_list("Compiler options            : " ${UNIT_TEST_OPTIONS} )

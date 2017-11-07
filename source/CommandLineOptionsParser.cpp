@@ -1,5 +1,5 @@
 #include "CommandLineOptionsParser.hpp"
-#include "TSDefinitions.hpp"
+#include "media/TSDefinitions.hpp"
 
 CommandLineOptionsParser::CommandLineOptionsParser(Tools::Console & console)
     : Tools::CommandLineParser(console, "MPEG2 TS splitter", "Splits MPEG2 TS into audio and video elementary streams."
@@ -8,6 +8,7 @@ CommandLineOptionsParser::CommandLineOptionsParser(Tools::Console & console)
         "video and audio stream. Only the first audio and video stream will be extracted and saved into files.\n"
         "File extensions will be chosen such that the stream can be played in a media player, such as VLC.\n")
     , _inputPath()
+    , _verbose()
     , _audioPID(static_cast<uint16_t>(Media::PIDType::NULL_PACKET))
     , _videoPID(static_cast<uint16_t>(Media::PIDType::NULL_PACKET))
 {
@@ -16,6 +17,7 @@ CommandLineOptionsParser::CommandLineOptionsParser(Tools::Console & console)
     group->AddOptionRequiredArgumentWithVariable("input", 'i',
                                                  "MPEG2 Transport Stream path (must be specified)",
                                                  _inputPath);
+    group->AddSwitchWithVariable("verbose", _verbose, true, "Verbose output");
     group->AddOptionRequiredArgumentWithVariable("audio-pid", 'a',
         "Pre-define audio PID to be used for extracting audio (default = first audio PID found)",
         _audioPID);

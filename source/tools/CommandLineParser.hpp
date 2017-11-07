@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include "tools/Definitions.hpp"
 #include "tools/CommandLineOption.hpp"
 #include "tools/CommandLineOptionGroup.hpp"
 #include "tools/Console.hpp"
@@ -147,11 +148,11 @@ namespace Tools {
         std::string GetHelp(const std::string & applicationName, bool mainHelp,
                              const CommandLineOptionGroup::Ptr group) const;
 
-        virtual void OnParseOption(const CommandLineOption::Ptr option)
+        virtual void OnParseOption(const CommandLineOption::Ptr option PARAMETER_NOT_USED)
         {
 //            _console << "Option " << option->LongName() << " argument " << option->Argument() << std::endl;
         }
-        virtual void OnParseNonOption(const std::string parameter)
+        virtual void OnParseNonOption(const std::string parameter PARAMETER_NOT_USED)
         {
 //            _console << "Non-option " << parameter << std::endl;
         }
