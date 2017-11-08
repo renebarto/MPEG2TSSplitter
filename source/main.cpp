@@ -23,7 +23,7 @@ int main(int argc, const char * argv[])
     }
     Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Yellow) << "Splitting file: " << path
                             << Tools::fgcolor(Tools::ConsoleColor::Default) << endl;
-    Media::MPEG2Splitter splitter(path);
+    Media::MPEG2Splitter splitter(path, parser._verbose);
     if (parser._audioPID != static_cast<uint16_t>(Media::PIDType::NULL_PACKET))
     {
         Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Green) << "Using predefined audio PID: "
@@ -46,6 +46,5 @@ int main(int argc, const char * argv[])
         Tools::DefaultConsole() << Tools::fgcolor(Tools::ConsoleColor::Green) << "Using first video PID found"
                                 << Tools::fgcolor(Tools::ConsoleColor::Default) << endl;
     }
-    splitter.SetVerbose(parser._verbose);
     return splitter.Run();
 }

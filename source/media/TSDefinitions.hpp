@@ -38,6 +38,18 @@ enum class PIDType : uint16_t
     NULL_PACKET = 0x1FFF,
 };
 
+enum class PIDKind
+{
+    PAT,        // Program Association Table
+    CAT,        // Conditional Access Table
+    TSDT,       // Transport Stream Description Table
+    ICIT,       // IPMP Control Information Table
+    PMT,        // Program Map Table
+    NIT,        // Network Information Table
+    PES,        // PES stream
+    NULL_PACKET = 0x1FFF,
+};
+
 inline std::ostream & operator << (std::ostream & stream, PIDType pid)
 {
     switch (pid)

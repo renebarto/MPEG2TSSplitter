@@ -2,23 +2,25 @@
 
 #include <cstdint>
 #include "media/IPIDDataHandler.hpp"
-#include "media/PESPacket.hpp"
+#include "media/PMT.hpp"
 
 namespace Media
 {
 
 class IStreamCallback;
 
-class VideoStreamHandler : public IPIDDataHandler
+class PMTHandler : public IPIDDataHandler
 {
 public:
-    VideoStreamHandler(IDecoder::Ptr decoder, IStreamCallback * streamInfoCallback, bool verbose);
+    PMTHandler(IStreamCallback * streamInfoCallback, bool verbose);
 
     bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator) override;
 
 private:
-    PESPacket _pesPacket;
+    IStreamCallback * _streamInfoCallback;
     bool _verbose;
+    std::vector<uint8_t> _buffer;
+    PMT _PMT; // Program Map Table
 };
 
 } // namespace Media

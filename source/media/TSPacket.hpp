@@ -28,8 +28,6 @@ public:
 
     bool Parse(const std::vector<uint8_t> & buffer);
 
-    const std::vector<uint8_t> & Data() const { return _data.Data(); }
-
     bool IsValid() const;
     bool IsAudio() const { return false; }
     bool IsVideo() const { return false; }
@@ -54,7 +52,6 @@ public:
     void DisplayContents(size_t packetIndex) const;
 
 private:
-    Tools::BitBuffer _data;
     uint32_t _packetHeader;
     bool _transportErrorIndicator;
     bool _payloadUnitStartIndicator;
@@ -69,7 +66,7 @@ private:
     uint8_t _adaptationFieldSize;
     bool _discontinuityIndicator;
 
-    bool ParseAdaptationField();
+    bool ParseAdaptationField(Tools::BitBuffer & data);
 };
 
 } // namespace Media

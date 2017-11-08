@@ -5,29 +5,23 @@
 
 using namespace Tools;
 
-BitBuffer::BitBuffer()
-    : _data()
+BitBuffer::BitBuffer(ByteIterator start, ByteIterator end)
+    : _begin(start)
+    , _size(static_cast<size_t>(end - start))
     , _byteIndex()
     , _bitIndex()
 {
 
 }
 
-void BitBuffer::SetData(const std::deque<uint8_t> & data)
+size_t BitBuffer::Size() const
 {
-    _data.reserve(data.size());
-    std::copy(data.begin(), data.end(), std::back_inserter(_data));
-}
-
-void BitBuffer::SetData(const std::vector<uint8_t> & data)
-{
-    _data = data;
-    _byteIndex = _bitIndex = 0;
+    return _size;
 }
 
 size_t BitBuffer::BytesLeft() const
 {
-    return _data.size() - _byteIndex - ((_bitIndex == 0) ? 0 : 1);
+    return _size - _byteIndex - ((_bitIndex == 0) ? 0 : 1);
 }
 
 size_t BitBuffer::BitsLeft() const
@@ -42,9 +36,9 @@ void BitBuffer::Reset()
 
 uint8_t BitBuffer::ReadBit()
 {
-    if ((_byteIndex >= _data.size()) || (_bitIndex >= BITS_PER_BYTE))
+    if ((_byteIndex >= _size) || (_bitIndex >= BITS_PER_BYTE))
         throw std::runtime_error("Reading beyond BitBuffer");
-    uint8_t result = static_cast<uint8_t>((_data[_byteIndex] >> (BITS_PER_BYTE - _bitIndex - 1)) & 0x01);
+    uint8_t result = static_cast<uint8_t>((_begin[_byteIndex] >> (BITS_PER_BYTE - _bitIndex - 1)) & 0x01);
     ++_bitIndex;
     if (_bitIndex >= BITS_PER_BYTE)
     {
@@ -65,9 +59,9 @@ uint64_t BitBuffer::ReadBits(size_t count)
         result = (result << 1) | ReadBit();
         --bitsLeft;
     }
-    while ((bitsLeft >= 8) && (_byteIndex < _data.size()))
+    while ((bitsLeft >= 8) && (_byteIndex < _size))
     {
-        result = (result << 8) | _data[_byteIndex];
+        result = (result << 8) | _begin[_byteIndex];
         ++_byteIndex;
         bitsLeft -= 8;
     }
@@ -100,7 +94,7 @@ uint64_t BitBuffer::ReadAheadBits(size_t count)
 
 void BitBuffer::SkipBytes(size_t count)
 {
-    if (_byteIndex + count >= _data.size())
+    if (_byteIndex + count >= _size)
         throw std::runtime_error("Reading beyond BitBuffer");
     _byteIndex += count;
 }

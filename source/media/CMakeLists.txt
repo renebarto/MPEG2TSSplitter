@@ -39,6 +39,8 @@ set(MEDIA_LIB_SOURCES
     ProgramDescriptor.cpp
     StreamInfo.cpp
     StreamWriter.cpp
+    PATHandler.cpp
+    PMTHandler.cpp
     AudioStreamHandler.cpp
     VideoStreamHandler.cpp
     )

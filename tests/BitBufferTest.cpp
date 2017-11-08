@@ -15,19 +15,18 @@ protected:
 
 TEST_F(BitBufferTest, Construct)
 {
-    BitBuffer buffer;
+    std::vector<uint8_t> data;
+    BitBuffer buffer(data.begin(), data.end());
 
     EXPECT_EQ(size_t {0}, buffer.BytesLeft());
     EXPECT_EQ(size_t {0}, buffer.BitsLeft());
 }
 
-TEST_F(BitBufferTest, SetData)
+TEST_F(BitBufferTest, ConstructData)
 {
     std::vector<uint8_t> data({0x00});
 
-    BitBuffer buffer;
-
-    buffer.SetData(data);
+    BitBuffer buffer(data.begin(), data.end());
 
     EXPECT_EQ(size_t {1}, buffer.BytesLeft());
     EXPECT_EQ(size_t {8}, buffer.BitsLeft());
@@ -37,9 +36,7 @@ TEST_F(BitBufferTest, ReadBit)
 {
     std::vector<uint8_t> data({0xA5});
 
-    BitBuffer buffer;
-
-    buffer.SetData(data);
+    BitBuffer buffer(data.begin(), data.end());
 
     EXPECT_EQ(size_t {1}, buffer.BytesLeft());
     EXPECT_EQ(size_t {8}, buffer.BitsLeft());
@@ -83,9 +80,7 @@ TEST_F(BitBufferTest, ReadBits)
 {
     std::vector<uint8_t> data({0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x55});
 
-    BitBuffer buffer;
-
-    buffer.SetData(data);
+    BitBuffer buffer(data.begin(), data.end());
 
     EXPECT_EQ(size_t {9}, buffer.BytesLeft());
     EXPECT_EQ(size_t {72}, buffer.BitsLeft());
@@ -130,9 +125,7 @@ TEST_F(BitBufferTest, ReadAheadBits)
 {
     std::vector<uint8_t> data({0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x55});
 
-    BitBuffer buffer;
-
-    buffer.SetData(data);
+    BitBuffer buffer(data.begin(), data.end());
 
     EXPECT_EQ(size_t {9}, buffer.BytesLeft());
     EXPECT_EQ(size_t {72}, buffer.BitsLeft());
@@ -158,9 +151,7 @@ TEST_F(BitBufferTest, SkipBytes)
 {
     std::vector<uint8_t> data({0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x55});
 
-    BitBuffer buffer;
-
-    buffer.SetData(data);
+    BitBuffer buffer(data.begin(), data.end());
 
     EXPECT_EQ(size_t {9}, buffer.BytesLeft());
     EXPECT_EQ(size_t {72}, buffer.BitsLeft());

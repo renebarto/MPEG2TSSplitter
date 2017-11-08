@@ -11,6 +11,7 @@ class StreamInfo
 {
 public:
     StreamInfo();
+    StreamInfo(PIDType pid);
 
     bool Parse(Tools::BitBuffer & buffer);
     bool IsValid() const;

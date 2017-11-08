@@ -14,27 +14,30 @@ using namespace std;
 namespace Tools
 {
 
-void DumpBytes(const std::vector<uint8_t> & data)
+void DumpBytes(ByteIterator begin, ByteIterator end)
 {
     constexpr size_t BytesPerColumn = 16;
     size_t offset = 0;
-    while (offset < data.size())
+    size_t size = end - begin;
+    ByteIterator current = begin;
+    while (offset < size)
     {
         for (size_t i = 0; i < BytesPerColumn; ++i)
         {
-            if ((offset + i) < data.size())
-                Tools::DefaultConsole() << Tools::Serialize(data[offset + i], 16) << " ";
+            if ((offset + i) < size)
+                Tools::DefaultConsole() << Tools::Serialize(current[i], 16) << " ";
             else
                 Tools::DefaultConsole() << "   ";
         }
         for (size_t i = 0; i < BytesPerColumn; ++i)
         {
-            if ((offset + i) < data.size())
-                Tools::DefaultConsole() << (isprint(data[offset + i]) ? (char)data[offset + i] : '.') << " ";
+            if ((offset + i) < size)
+                Tools::DefaultConsole() << (isprint(current[i]) ? (char)current[i] : '.') << " ";
             else
                 Tools::DefaultConsole() << "  ";
         }
         offset += BytesPerColumn;
+        current += BytesPerColumn;
         Tools::DefaultConsole() << endl;
     }
 }

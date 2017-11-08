@@ -19,10 +19,9 @@ PMT::PMT(IStreamCallback * streamInfoCallback)
 
 }
 
-bool PMT::Parse(std::deque<uint8_t> & data)
+bool PMT::Parse(std::vector<uint8_t> & data)
 {
-    Tools::BitBuffer buffer;
-    buffer.SetData(data);
+    Tools::BitBuffer buffer(data.begin(), data.end());
     _tableID = static_cast<TableID>(buffer.ReadBits(8));
     if (_tableID != TableID::PMT)
         return false;
@@ -76,7 +75,7 @@ bool PMT::ParseStreamInfo(Tools::BitBuffer & buffer)
         return false;
     _streamInfo.streamInfo.push_back(info);
     if (_streamInfoCallback)
-        _streamInfoCallback->OnStreamFound(info);
+        _streamInfoCallback->OnStreamFound(PIDKind::PES, info);
     return true;
 }
 

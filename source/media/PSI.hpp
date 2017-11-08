@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <deque>
 #include <string>
 #include <vector>
 #include "media/TSDefinitions.hpp"
@@ -26,7 +25,7 @@ public:
     {
     }
 
-    virtual bool Parse(std::deque<uint8_t> & data) = 0;
+    virtual bool Parse(std::vector<uint8_t> & data) = 0;
     bool NeedMoreData() const { return _needMoreData; }
     virtual bool IsValid() const = 0;
     virtual void DisplayContents() const = 0;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <deque>
 #include <string>
 #include <vector>
 #include "media/PSI.hpp"
@@ -24,7 +23,7 @@ class PMT : public PSI
 public:
     PMT(IStreamCallback * streamInfoCallback);
 
-    bool Parse(std::deque<uint8_t> & data) override;
+    bool Parse(std::vector<uint8_t> & data) override;
     bool IsValid() const override;
 
     bool HaveAudio() const;

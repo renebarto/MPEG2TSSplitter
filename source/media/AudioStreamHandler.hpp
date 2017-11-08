@@ -1,29 +1,24 @@
 #pragma once
 
 #include <cstdint>
-#include <deque>
-#include "PESPacket.hpp"
+#include "media/IPIDDataHandler.hpp"
+#include "media/PESPacket.hpp"
 
 namespace Media
 {
 
-using TSBufferIterator = std::vector<uint8_t>::const_iterator;
+class IStreamCallback;
 
-class AudioStreamHandler
+class AudioStreamHandler : public IPIDDataHandler
 {
 public:
-    AudioStreamHandler();
+    AudioStreamHandler(IDecoder::Ptr decoder, IStreamCallback * streamInfoCallback, bool verbose);
 
-    void SetDecoder(IDecoder::Ptr decoder)
-    {
-        _pesPacket.SetDecoder(decoder);
-    }
-
-    bool Parse(const TSBufferIterator & start, const TSBufferIterator & end, bool hasStartIndicator);
+    bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator) override;
 
 private:
-    std::deque<uint8_t> _buffer;
     PESPacket _pesPacket;
+    bool _verbose;
 };
 
 } // namespace Media

@@ -1,17 +1,20 @@
 #pragma once
 
 #include <iostream>
-#include <deque>
+#include <map>
 #include <vector>
 #include "media/TSPacket.hpp"
-#include "media/PAT.hpp"
-#include "media/PMT.hpp"
 #include "media/PESPacket.hpp"
 #include "media/IStreamCallback.hpp"
 #include "media/IDecoder.hpp"
+#include "media/PMTHandler.hpp"
+#include "media/AudioStreamHandler.hpp"
+#include "media/VideoStreamHandler.hpp"
 
 namespace Media
 {
+
+using StreamMap = std::map<PIDType, IPIDDataHandler::Ptr>;
 
 class TransportStream
 {
@@ -20,42 +23,24 @@ public:
     TransportStream(const TransportStream &) = delete;
     TransportStream & operator= (const TransportStream &) = delete;
 
-    explicit TransportStream(std::istream & stream, IStreamCallback * callback);
+    explicit TransportStream(std::istream & stream, IStreamCallback * callback, bool verbose);
 
-    void SetVerbose(bool value) { _verbose = value; }
+    void Initialize();
+
     bool ReadPacket(TSPacket & packet);
+    bool ParsePacket(TSPacket & packet);
     size_t PacketIndex() const { return _packetIndex; }
 
-    void SetAudioPID(PIDType pid, IDecoder::Ptr decoder)
-    {
-        _audioPID = pid;
-        _audioPacket.SetDecoder(decoder);
-    }
-    void SetVideoPID(PIDType pid, IDecoder::Ptr decoder)
-    {
-        _videoPID = pid;
-        _videoPacket.SetDecoder(decoder);
-    }
-
-    bool IsPSI(PIDType pid);
-    const PAT & GetPAT() { return _PAT; }
+    void AddStreamHandler(PIDType pid, IPIDDataHandler::Ptr handler);
 
 private:
     std::istream & _stream;
-    size_t _packetIndex;
+    IStreamCallback * _callback;
     bool _verbose;
+    size_t _packetIndex;
+    StreamMap  _streamMap;
 
     std::vector<uint8_t> _TSBuffer;
-    std::deque<uint8_t> _PATBuffer;
-    PAT _PAT; // Program Association Table
-    std::deque<uint8_t> _PMTBuffer;
-    PMT _PMT; // Program Map Table
-    PIDType _audioPID;
-    PIDType _videoPID;
-    std::deque<uint8_t> _audioBuffer;
-    PESPacket _audioPacket;
-    std::deque<uint8_t> _videoBuffer;
-    PESPacket _videoPacket;
 };
 
 } // namespace Media

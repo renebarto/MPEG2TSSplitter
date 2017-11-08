@@ -3,27 +3,37 @@
 #include <iomanip>
 #include "tools/Util.hpp"
 #include "tools/Console.hpp"
+#include "media/PATHandler.hpp"
+#include "media/CATHandler.hpp"
+#include "media/TSDTHandler.hpp"
+#include "media/ICITHandler.hpp"
 
 using namespace std;
 using namespace Media;
 
-TransportStream::TransportStream(istream & stream, IStreamCallback * callback)
+TransportStream::TransportStream(istream & stream, IStreamCallback * callback, bool verbose)
     : _stream(stream)
+    , _callback(callback)
+    , _verbose(verbose)
     , _packetIndex()
-    , _verbose()
+    , _streamMap()
     , _TSBuffer(TSPacket::PacketSize)
-    , _PATBuffer()
-    , _PAT()
-    , _PMTBuffer()
-    , _PMT(callback)
-    , _audioPID(PIDType::NULL_PACKET)
-    , _videoPID(PIDType::NULL_PACKET)
-    , _audioBuffer()
-    , _audioPacket()
-    , _videoBuffer()
-    , _videoPacket()
 {
 
+}
+
+void TransportStream::Initialize()
+{
+    _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::PAT, make_shared<PATHandler>(_callback, _verbose)));
+    _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::CAT, make_shared<CATHandler>()));
+    _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::TSDT, make_shared<TSDTHandler>()));
+    _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::ICIT, make_shared<ICITHandler>()));
+}
+
+void TransportStream::AddStreamHandler(PIDType pid, IPIDDataHandler::Ptr handler)
+{
+    if (_streamMap.find(pid) == _streamMap.end())
+        _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(pid, handler));
 }
 
 bool TransportStream::ReadPacket(TSPacket & packet)
@@ -40,98 +50,29 @@ bool TransportStream::ReadPacket(TSPacket & packet)
     }
     if (_stream.bad() || _stream.eof() || (bytesLeft > 0))
         return false;
-
-    packet.Parse(_TSBuffer);
-    if (_verbose)
-        packet.DisplayContents(_packetIndex);
-
-    if (packet.HasError())
-        return false;
-    if (IsPSI(packet.PID()))
-    {
-        uint8_t startOffset = packet.PayloadStartOffset();
-        if (packet.HasPayloadUnitStartIndicator())
-        {
-            uint8_t pointerField = packet.Data()[packet.PayloadStartOffset()];
-            startOffset = static_cast<uint8_t>(packet.PayloadStartOffset() + 1 + pointerField);
-        }
-        if (packet.PID() == PIDType::PAT)
-        {
-            auto dataStart = packet.Data().begin() + startOffset;
-            auto dataEnd = packet.Data().end();
-            while ((dataEnd >= dataStart) && (*(dataEnd - 1) == 0xFF))
-                --dataEnd;
-            _PATBuffer.insert(_PATBuffer.end(), dataStart, dataEnd);
-            if (_PAT.Parse(_PATBuffer))
-            {
-                if (_verbose)
-                    _PAT.DisplayContents();
-                _PATBuffer.clear();
-            }
-            else if (!_PAT.NeedMoreData())
-                return false;
-        } else if (packet.PID() == PIDType::CAT)
-        {
-            throw std::logic_error("CAT not implemented");
-        } else if (packet.PID() == PIDType::TSDT)
-        {
-            throw std::logic_error("TSDT not implemented");
-        } else if (packet.PID() == PIDType::ICIT)
-        {
-            throw std::logic_error("ICIT not implemented");
-        } else if (_PAT.IsNIT(packet.PID()))
-        {
-            throw std::logic_error("NIT not implemented");
-        } else if (_PAT.IsPMT(packet.PID()))
-        {
-            auto dataStart = packet.Data().begin() + startOffset;
-            auto dataEnd = packet.Data().end();
-            while ((dataEnd >= dataStart) && (*(dataEnd - 1) == 0xFF))
-                --dataEnd;
-            _PMTBuffer.insert(_PMTBuffer.end(), dataStart, dataEnd);
-            if (_PMT.Parse(_PMTBuffer))
-            {
-                if (_verbose)
-                    _PMT.DisplayContents();
-                _PMTBuffer.clear();
-            }
-            else if (!_PMT.NeedMoreData())
-                return false;
-        }
-    }
-    else if ((_audioPID != PIDType::NULL_PACKET) && (_audioPID == packet.PID()))
-    {
-        auto dataStart = packet.Data().begin() + packet.PayloadStartOffset();
-        auto dataEnd = packet.Data().end();
-        _audioBuffer.insert(_audioBuffer.end(), dataStart, dataEnd);
-        if (!_audioPacket.Parse(_audioBuffer, packet.HasPayloadUnitStartIndicator()))
-            return false;
-        _audioBuffer.clear();
-    }
-    else if ((_videoPID != PIDType::NULL_PACKET) && (_videoPID == packet.PID()))
-    {
-        auto dataStart = packet.Data().begin() + packet.PayloadStartOffset();
-        auto dataEnd = packet.Data().end();
-        _videoBuffer.insert(_videoBuffer.end(), dataStart, dataEnd);
-        if (!_videoPacket.Parse(_videoBuffer, packet.HasPayloadUnitStartIndicator()))
-            return false;
-        _videoBuffer.clear();
-    }
-    ++_packetIndex;
     return true;
 }
 
-bool TransportStream::IsPSI(PIDType pid)
+bool TransportStream::ParsePacket(TSPacket & packet)
 {
-    switch (pid)
+    if (!packet.Parse(_TSBuffer))
+        return false;
+    if (_verbose)
     {
-        case PIDType::PAT:
-            return true;
-        case PIDType::CAT:
-            return true;
-        case PIDType::TSDT:
-            return true;
+        Tools::DumpBytes(_TSBuffer.begin(), _TSBuffer.end());
+        packet.DisplayContents(_packetIndex);
     }
-    return _PAT.IsNIT(pid) || _PAT.IsPMT(pid);
+
+    if (packet.HasError())
+        return false;
+    if (_streamMap.find(packet.PID()) != _streamMap.end())
+    {
+        auto dataStart = _TSBuffer.begin() + packet.PayloadStartOffset();
+        auto dataEnd = _TSBuffer.end();
+        if (!_streamMap[packet.PID()]->Parse(dataStart, dataEnd, packet.HasPayloadUnitStartIndicator()))
+            return false;
+    }
+    ++_packetIndex;
+    return true;
 }
 

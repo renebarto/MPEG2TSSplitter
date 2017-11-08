@@ -15,7 +15,7 @@ constexpr uint8_t AudioStreamID = 0xC0;
 constexpr uint8_t VideoStreamMask = 0xF0;
 constexpr uint8_t VideoStreamID = 0xE0;
 
-PESPacket::PESPacket()
+PESPacket::PESPacket(IDecoder::Ptr decoder)
     : _startCode()
     , _streamID()
     , _packetLength()
@@ -32,14 +32,13 @@ PESPacket::PESPacket()
     , _PES_CRCFlag()
     , _PESExtensionFlag()
     , _PESHeaderDataLength()
-    , _decoder()
+    , _decoder(decoder)
 {
 }
 
-bool PESPacket::Parse(std::deque<uint8_t> & data, bool hasStartIndicator)
+bool PESPacket::Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator)
 {
-    Tools::BitBuffer buffer;
-    buffer.SetData(data);
+    Tools::BitBuffer buffer(start, end);
     if (hasStartIndicator)
     {
         _startCode = static_cast<uint32_t>(buffer.ReadBits(24));
@@ -130,7 +129,7 @@ bool PESPacket::Parse(std::deque<uint8_t> & data, bool hasStartIndicator)
     {
         if (_decoder)
         {
-            _decoder->FeedData(&(buffer.Data()[buffer.ByteOffset()]), buffer.BytesLeft());
+            _decoder->FeedData(buffer.Current(), buffer.BytesLeft());
         }
     }
     return IsValid();
@@ -167,11 +166,6 @@ bool PESPacket::StreamHasHeader() const
            (_streamID != StreamID::ProgramStreamDirectory) &&
            (_streamID != StreamID::DSMCCStream) &&
            (_streamID != StreamID::ITU_T_H222_1_E_Stream);
-}
-
-void PESPacket::SetDecoder(IDecoder::Ptr decoder)
-{
-    _decoder = decoder;
 }
 
 void PESPacket::DisplayContents() const

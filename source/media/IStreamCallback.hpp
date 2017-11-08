@@ -13,7 +13,7 @@ class IStreamCallback
 public:
     virtual ~IStreamCallback() {}
 
-    virtual void OnStreamFound(const StreamInfo &) = 0;
+    virtual void OnStreamFound(PIDKind kind, const StreamInfo &) = 0;
 };
 
 } // namespace Media

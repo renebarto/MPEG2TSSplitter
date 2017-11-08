@@ -13,7 +13,7 @@ public:
     {
     }
 
-    virtual void FeedData(const uint8_t * data, size_t size) override;
+    virtual void FeedData(Tools::ByteIterator data, size_t size) override;
 
 private:
     std::ostream & _stream;

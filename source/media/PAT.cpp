@@ -5,22 +5,24 @@
 #include "tools/SerializationImpl.hpp"
 #include "tools/BitBuffer.hpp"
 #include "tools/Console.hpp"
+#include "media/IStreamCallback.hpp"
+#include "media/StreamInfo.hpp"
 
 using namespace std;
 using namespace Media;
 
-PAT::PAT()
-    : _transportStreamID()
+static constexpr PIDType DefaultPID_NIT = static_cast<PIDType>(0x0010);
+PAT::PAT(IStreamCallback * streamInfoCallback)
+    : _streamInfoCallback(streamInfoCallback)
+    , _transportStreamID()
     , _programInfo()
-    , _pidNIT(static_cast<PIDType>(0x0010))
 {
 
 }
 
-bool PAT::Parse(std::deque<uint8_t> & data)
+bool PAT::Parse(std::vector<uint8_t> & data)
 {
-    Tools::BitBuffer buffer;
-    buffer.SetData(data);
+    Tools::BitBuffer buffer(data.begin(), data.end());
     _tableID = static_cast<TableID>(buffer.ReadBits(8));
     if (_tableID != TableID::PAT)
         return false;
@@ -46,8 +48,17 @@ bool PAT::Parse(std::deque<uint8_t> & data)
         buffer.ReadBits(3);     // Reserved xxx
         info.pid = static_cast<PIDType>(buffer.ReadBits(13));
         _programInfo.push_back(info);
-        if (info.programNumber == 0x0000)
-            _pidNIT = info.pid;
+        if (_streamInfoCallback)
+        {
+            if (info.programNumber != 0x0000)
+            {
+                // Default NIT
+                StreamInfo streamInfo(DefaultPID_NIT);
+                _streamInfoCallback->OnStreamFound(PIDKind::NIT, streamInfo);
+            }
+            StreamInfo streamInfo(info.pid);
+            _streamInfoCallback->OnStreamFound(PIDKind::PMT, streamInfo);
+        }
     }
     _crc = static_cast<uint32_t>(buffer.ReadBits(32));
     return IsValid();
@@ -58,16 +69,6 @@ bool PAT::IsValid() const
     return (_tableID == TableID::PAT) &&            // table_id = 0x00
            ((_sectionLength & 0xFC00) == 0x0000) && // section_length = 0000 00xx xxxx xxxx
            (_sectionNumber == 0x00);
-}
-
-bool PAT::IsPMT(PIDType pid) const
-{
-    for (auto program: _programInfo)
-    {
-        if (program.pid == pid)
-            return true;
-    }
-    return false;
 }
 
 void PAT::DisplayContents() const

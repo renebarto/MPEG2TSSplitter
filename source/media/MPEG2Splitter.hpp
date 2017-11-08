@@ -17,9 +17,8 @@ public:
     MPEG2Splitter(const MPEG2Splitter &) = delete;
     MPEG2Splitter & operator= (const MPEG2Splitter &) = delete;
 
-    MPEG2Splitter(const std::string & inputPath);
+    MPEG2Splitter(const std::string & inputPath, bool verbose);
 
-    void SetVerbose(bool value);
     void SetAudioPID(PIDType pid);
     void SetVideoPID(PIDType pid);
     IDecoder::Ptr CreateAudioDecoder(StreamType type);
@@ -27,10 +26,11 @@ public:
 
     int Run();
 
-    virtual void OnStreamFound(const StreamInfo & info) override;
+    virtual void OnStreamFound(PIDKind kind, const StreamInfo & info) override;
 
 private:
     std::string _inputPath;
+    bool _verbose;
     PIDType _audioPID;
     PIDType _videoPID;
     std::ifstream _transportStreamFile;

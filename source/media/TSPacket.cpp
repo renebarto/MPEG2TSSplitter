@@ -16,8 +16,7 @@ static constexpr uint8_t AdaptationFieldOffset = 0x04;
 static constexpr uint8_t AdaptationFlagsOffset = 0x05;
 
 TSPacket::TSPacket()
-    : _data()
-    , _packetHeader()
+    : _packetHeader()
     , _transportErrorIndicator()
     , _payloadUnitStartIndicator()
     , _transportPriority()
@@ -33,25 +32,27 @@ TSPacket::TSPacket()
 
 bool TSPacket::Parse(const std::vector<uint8_t> & buffer)
 {
+    Tools::BitBuffer data(buffer.begin(), buffer.end());
+
     _prevContinuityCount = ContinuityCount();
     if (buffer.size() != PacketSize)
         throw std::runtime_error("Incorrect packet size");
-    _data.SetData(buffer);
-    _packetHeader = static_cast<uint32_t>(_data.ReadBits(32));
-    _data.Reset();
-    if (static_cast<uint8_t>(_data.ReadBits(8)) != SyncByte)
+
+    _packetHeader = static_cast<uint32_t>(data.ReadBits(32));
+    data.Reset();
+    if (static_cast<uint8_t>(data.ReadBits(8)) != SyncByte)
         return false;
-    _transportErrorIndicator = _data.ReadBit();
-    _payloadUnitStartIndicator = _data.ReadBit();
-    _transportPriority = _data.ReadBit();
-    _pid = static_cast<PIDType>(_data.ReadBits(13));
-    _scramblingControl = static_cast<ScrambingControl>(_data.ReadBits(2));
-    _adaptationFieldControl = static_cast<AdaptationFieldControlType>(_data.ReadBits(2));
-    _continuityCount = static_cast<uint8_t>(_data.ReadBits(4));
-    _adaptationFieldSize = HasAdaptationField() ? static_cast<uint8_t>(_data.ReadBits(8)) : static_cast<uint8_t>(0);
+    _transportErrorIndicator = data.ReadBit();
+    _payloadUnitStartIndicator = data.ReadBit();
+    _transportPriority = data.ReadBit();
+    _pid = static_cast<PIDType>(data.ReadBits(13));
+    _scramblingControl = static_cast<ScrambingControl>(data.ReadBits(2));
+    _adaptationFieldControl = static_cast<AdaptationFieldControlType>(data.ReadBits(2));
+    _continuityCount = static_cast<uint8_t>(data.ReadBits(4));
+    _adaptationFieldSize = HasAdaptationField() ? static_cast<uint8_t>(data.ReadBits(8)) : static_cast<uint8_t>(0);
     if (!IsValid())
         return false;
-    if (HasAdaptationField() && !ParseAdaptationField())
+    if (HasAdaptationField() && !ParseAdaptationField(data))
         return false;
     return true;
 }
@@ -62,7 +63,9 @@ bool TSPacket::IsValid() const
            (((AdaptationFieldControl() == AdaptationFieldControlType::AdaptationOnly) &&
              (AdaptationFieldSize() == (PacketSize - AdaptationFlagsOffset))) ||
             ((AdaptationFieldControl() == AdaptationFieldControlType::AdaptationAndPayload) &&
-             (AdaptationFieldSize() < (PacketSize - AdaptationFlagsOffset))));
+             (AdaptationFieldSize() < (PacketSize - AdaptationFlagsOffset))) ||
+            ((AdaptationFieldControl() == AdaptationFieldControlType::PayloadOnly) &&
+             (AdaptationFieldSize() == 0)));
 }
 
 bool TSPacket::HasError() const
@@ -144,11 +147,11 @@ uint8_t TSPacket::PayloadStartOffset() const
     return static_cast<uint8_t>(PacketSize - PayloadSize());
 }
 
-bool TSPacket::ParseAdaptationField()
+bool TSPacket::ParseAdaptationField(Tools::BitBuffer & data)
 {
-    _discontinuityIndicator = _data.ReadBit();
-    _data.ReadBits(7);
-    _data.SkipBytes(static_cast<size_t>(_adaptationFieldSize - 1));
+    _discontinuityIndicator = data.ReadBit();
+    data.ReadBits(7);
+    data.SkipBytes(static_cast<size_t>(_adaptationFieldSize - 1));
     return true;
 }
 
@@ -156,7 +159,6 @@ void TSPacket::DisplayContents(size_t packetIndex) const
 {
     Tools::DefaultConsole() << endl << "TS Packet" << endl<< endl;
     Tools::DefaultConsole() << "Packet index:     " << packetIndex << endl;
-    Tools::DumpBytes(Data());
     Tools::DefaultConsole() << "PID:              " << Tools::Serialize(static_cast<uint16_t>(PID()), 16) << " (" << PID() << ")" << endl;
     Tools::DefaultConsole() << "Packet header:    " << Tools::Serialize(PacketHeader(), 16) << endl;
     Tools::DefaultConsole() << "Adaptation field: " << (HasAdaptationField() ? "Yes" : "No") << " Size: " << Tools::Serialize(AdaptationFieldSize(), 10) << endl;

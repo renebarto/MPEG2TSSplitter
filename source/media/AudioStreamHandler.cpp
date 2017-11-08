@@ -2,18 +2,14 @@
 
 using namespace Media;
 
-AudioStreamHandler::AudioStreamHandler()
-    : _buffer()
-    , _pesPacket()
+AudioStreamHandler::AudioStreamHandler(IDecoder::Ptr decoder, IStreamCallback * streamInfoCallback, bool verbose)
+    : _pesPacket(decoder)
+    , _verbose(verbose)
 {
 
 }
 
-bool AudioStreamHandler::Parse(const TSBufferIterator & start, const TSBufferIterator & end, bool hasStartIndicator)
+bool AudioStreamHandler::Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator)
 {
-    _buffer.insert(_buffer.end(), start, end);
-    if (!_pesPacket.Parse(_buffer, hasStartIndicator))
-        return false;
-    _buffer.clear();
-    return true;
+    return _pesPacket.Parse(start, end, hasStartIndicator);
 }

@@ -52,12 +52,16 @@ void AssertFilesEqual(const string & referencePath, const string & actualPath)
 TEST_F(MPEG2SplitterTest, TestRun)
 {
     Tools::Stopwatch stopwatch;
+    string outputVideoPath = string(TEST_DATA_ROOT) + "/elephants.ts.mp4";
+    string outputAudioPath = string(TEST_DATA_ROOT) + "/elephants.ts.aac";
+    unlink(outputAudioPath.c_str());
+    unlink(outputVideoPath.c_str());
     stopwatch.Start();
-    MPEG2Splitter splitter(string(TEST_DATA_ROOT) + "/elephants.ts");
+    MPEG2Splitter splitter(string(TEST_DATA_ROOT) + "/elephants.ts", false);
     splitter.Run();
     stopwatch.Lap();
-    AssertFilesEqual(string(TEST_DATA_ROOT) + "/elephants.ts.mp4.ref", string(TEST_DATA_ROOT) + "/elephants.ts.mp4");
-    AssertFilesEqual(string(TEST_DATA_ROOT) + "/elephants.ts.aac.ref", string(TEST_DATA_ROOT) + "/elephants.ts.aac");
+    AssertFilesEqual(string(TEST_DATA_ROOT) + "/elephants.ts.mp4.ref", outputVideoPath);
+    AssertFilesEqual(string(TEST_DATA_ROOT) + "/elephants.ts.aac.ref", outputAudioPath);
     Tools::DefaultConsole() << "Elapsed time: " << stopwatch.GetElapsedTime() << " seconds" << endl;
 }
 

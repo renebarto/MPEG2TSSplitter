@@ -40,5 +40,5 @@ void ProgramDescriptor::DisplayContents() const
     Tools::DefaultConsole() << "Tag:          " << _tag << " (0x" << Tools::Serialize((uint8_t)_tag, 16) << ")" << endl;
     Tools::DefaultConsole() << "Data length   0x" << Tools::Serialize(_length, 16) << endl;
     Tools::DefaultConsole() << "Data" << endl;
-    Tools::DumpBytes(_data);
+    Tools::DumpBytes(_data.begin(), _data.end());
 }

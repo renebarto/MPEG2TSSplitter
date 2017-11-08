@@ -13,6 +13,13 @@ StreamInfo::StreamInfo()
 {
 }
 
+StreamInfo::StreamInfo(PIDType pid)
+    : _type(StreamType::Reserved)
+    , _pid(pid)
+    , _descriptors()
+{
+}
+
 bool StreamInfo::Parse(Tools::BitBuffer & buffer)
 {
     _type = static_cast<StreamType>(buffer.ReadBits(8));

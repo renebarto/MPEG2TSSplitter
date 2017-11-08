@@ -3,11 +3,12 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "BitBuffer.hpp"
 
 namespace Tools
 {
 
-void DumpBytes(const std::vector<uint8_t> & data);
+void DumpBytes(ByteIterator begin, ByteIterator end);
 
 std::string Trim(const std::string & value, const std::string & stripChars);
 

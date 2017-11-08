@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <deque>
 #include <vector>
 #include "media/TSDefinitions.hpp"
 #include "media/IDecoder.hpp"
@@ -43,17 +42,15 @@ enum class PTSDTSFlags : uint8_t
 class PESPacket
 {
 public:
-    PESPacket();
+    PESPacket(IDecoder::Ptr decoder);
 
-    bool Parse(std::deque<uint8_t> & data, bool hasStartIndicator);
+    bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator);
     bool IsValid() const;
     void DisplayContents() const;
     bool IsAudioStream() const;
     bool IsVideoStream() const;
     bool IsPaddingStream() const;
     bool StreamHasHeader() const;
-
-    void SetDecoder(IDecoder::Ptr decoder);
 
 private:
     uint32_t _startCode;
