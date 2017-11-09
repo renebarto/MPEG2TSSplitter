@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "tools/Definitions.hpp"
 #include "BitBuffer.hpp"
 
 namespace Tools

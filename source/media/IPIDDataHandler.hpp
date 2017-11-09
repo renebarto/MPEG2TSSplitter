@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "tools/Definitions.hpp"
 #include "tools/BitBuffer.hpp"
 #include "media/PAT.hpp"
 
@@ -17,7 +18,7 @@ public:
 
     virtual ~IPIDDataHandler() = default;
 
-    virtual bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator) = 0;
+    virtual bool Parse(ByteIterator start, ByteIterator end, bool hasStartIndicator) = 0;
 };
 
 } // namespace Media

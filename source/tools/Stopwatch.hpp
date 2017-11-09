@@ -1,7 +1,8 @@
 #pragma once
 
-#include <string>
 #include <time.h>
+#include <string>
+#include <iostream>
 
 namespace Tools
 {
@@ -30,6 +31,7 @@ protected:
 inline std::ostream & operator << (std::ostream & stream, const Stopwatch & stopwatch)
 {
     stopwatch.PrintTo(stream);
+    return stream;
 }
 
 } // namespace Tools

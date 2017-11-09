@@ -12,13 +12,12 @@ class IStreamCallback;
 class AudioStreamHandler : public IPIDDataHandler
 {
 public:
-    AudioStreamHandler(IDecoder::Ptr decoder, IStreamCallback * streamInfoCallback, bool verbose);
+    AudioStreamHandler(IDecoder::Ptr decoder);
 
-    bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator) override;
+    bool Parse(ByteIterator start, ByteIterator end, bool hasStartIndicator) override;
 
 private:
     PESPacket _pesPacket;
-    bool _verbose;
 };
 
 } // namespace Media

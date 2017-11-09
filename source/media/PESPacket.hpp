@@ -44,7 +44,7 @@ class PESPacket
 public:
     PESPacket(IDecoder::Ptr decoder);
 
-    bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator);
+    bool Parse(ByteIterator start, ByteIterator end, bool hasStartIndicator);
     bool IsValid() const;
     void DisplayContents() const;
     bool IsAudioStream() const;

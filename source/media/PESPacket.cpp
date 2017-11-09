@@ -1,9 +1,7 @@
 #include "media/PESPacket.hpp"
 
-#include <iostream>
 #include <iomanip>
 #include "tools/SerializationImpl.hpp"
-#include "tools/BitBuffer.hpp"
 #include "tools/Console.hpp"
 
 using namespace std;
@@ -36,60 +34,60 @@ PESPacket::PESPacket(IDecoder::Ptr decoder)
 {
 }
 
-bool PESPacket::Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator)
+bool PESPacket::Parse(ByteIterator start, ByteIterator end, bool hasStartIndicator)
 {
     Tools::BitBuffer buffer(start, end);
     if (hasStartIndicator)
     {
-        _startCode = static_cast<uint32_t>(buffer.ReadBits(24));
+        _startCode = buffer.ReadBits<uint32_t>(24);
         if (_startCode != StartCodeValue)
         {
             return false;
         }
-        _streamID = static_cast<StreamID >(buffer.ReadBits(8));
-        _packetLength = static_cast<uint16_t>(buffer.ReadBits(16));
+        _streamID = static_cast<StreamID >(buffer.ReadBits<uint8_t>(8));
+        _packetLength = buffer.ReadBits<uint16_t>(16);
         if (StreamHasHeader())
         {
-            if (buffer.ReadBits(2) != 0x00000002)  // Must be 10
+            if (buffer.ReadBits<uint8_t>(2) != 0x00000002)  // Must be 10
                 return false;
-            _PESScramblingControl = static_cast<ScrambingControl>(buffer.ReadBits(2));
+            _PESScramblingControl = static_cast<ScrambingControl>(buffer.ReadBits<uint8_t>(2));
             _PESPriority = buffer.ReadBit();
             _dataAlignmentIndicator = buffer.ReadBit();
             _copyright = buffer.ReadBit();
             _originalOrCopy = buffer.ReadBit();
-            _PTSDTSFlags = static_cast<PTSDTSFlags>(buffer.ReadBits(2));
+            _PTSDTSFlags = static_cast<PTSDTSFlags>(buffer.ReadBits<uint8_t>(2));
             _ESCRFlags = buffer.ReadBit();
             _ESRateFlag = buffer.ReadBit();
             _DSMTrickModeFlag = buffer.ReadBit();
             _additionalCopyInfoFlag = buffer.ReadBit();
             _PES_CRCFlag = buffer.ReadBit();
             _PESExtensionFlag = buffer.ReadBit();
-            _PESHeaderDataLength = static_cast<uint8_t>(buffer.ReadBits(8));
+            _PESHeaderDataLength = buffer.ReadBits<uint8_t>(8);
             if ((_PTSDTSFlags == PTSDTSFlags::PTSOnly) ||
                 (_PTSDTSFlags == PTSDTSFlags::PTSAndDTS))
             {
-                if (static_cast<uint8_t>(buffer.ReadBits(4)) != static_cast<uint8_t>(_PTSDTSFlags))  // Must be equal to flags
+                if (buffer.ReadBits<uint8_t>(4) != static_cast<uint8_t>(_PTSDTSFlags))  // Must be equal to flags
                     return false;
-                _PTS = buffer.ReadBits(3) << 30;
+                _PTS = buffer.ReadBits<uint64_t>(3) << 30;
                 if (!buffer.ReadBit())                  // Marker bit = 1
                     return false;
-                _PTS |= buffer.ReadBits(15) << 15;
+                _PTS |= buffer.ReadBits<uint64_t>(15) << 15;
                 if (!buffer.ReadBit())                  // Marker bit = 1
                     return false;
-                _PTS |= buffer.ReadBits(15) << 0;
+                _PTS |= buffer.ReadBits<uint64_t>(15) << 0;
                 if (!buffer.ReadBit())                  // Marker bit = 1
                     return false;
                 if (_PTSDTSFlags == PTSDTSFlags::PTSAndDTS)
                 {
-                    if (static_cast<uint8_t>(buffer.ReadBits(4)) != 0x01)  // Must be 0001
+                    if (buffer.ReadBits<uint8_t>(4) != 0x01)  // Must be 0001
                         return false;
-                    _DTS = buffer.ReadBits(3) << 30;
+                    _DTS = buffer.ReadBits<uint64_t>(3) << 30;
                     if (!buffer.ReadBit())                  // Marker bit = 1
                         return false;
-                    _DTS |= buffer.ReadBits(15) << 15;
+                    _DTS |= buffer.ReadBits<uint64_t>(15) << 15;
                     if (!buffer.ReadBit())                  // Marker bit = 1
                         return false;
-                    _DTS |= buffer.ReadBits(15) << 0;
+                    _DTS |= buffer.ReadBits<uint64_t>(15) << 0;
                     if (!buffer.ReadBit())                  // Marker bit = 1
                         return false;
                 }
@@ -123,7 +121,7 @@ bool PESPacket::Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool h
     if (IsPaddingStream())
     {
         for (size_t i = 0; i < _packetLength; ++i)
-            buffer.ReadBits(8); // Simply consume padding bytes
+            buffer.ReadBits<uint8_t>(8); // Simply consume padding bytes
     }
     else
     {

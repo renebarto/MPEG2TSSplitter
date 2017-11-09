@@ -1,16 +1,12 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdint>
-#include <vector>
-#include <deque>
+#include "tools/Definitions.hpp"
 
 namespace Tools
 {
 
 constexpr size_t BITS_PER_BYTE = 8;
-
-using ByteIterator = std::vector<uint8_t>::const_iterator;
 
 class BitBuffer
 {
@@ -25,8 +21,53 @@ public:
     ByteIterator End() const { return _begin + _size; }
     void Reset();
     uint8_t ReadBit();
-    uint64_t ReadBits(size_t count);
-    uint64_t ReadAheadBits(size_t count);
+
+    template<typename T>
+    T ReadBits(size_t count)
+    {
+        size_t bitsLeft = count;
+        T result {};
+        while ((bitsLeft > 0) && (_bitIndex != 0))
+        {
+            result = (result << 1) | ReadBit();
+            --bitsLeft;
+        }
+        while ((bitsLeft >= 8) && (_byteIndex < _size))
+        {
+            result = (result << 8) | _begin[_byteIndex];
+            ++_byteIndex;
+            bitsLeft -= 8;
+        }
+        while (bitsLeft > 0)
+        {
+            result = (result << 1) | ReadBit();
+            --bitsLeft;
+        }
+        return result;
+    }
+
+    template<typename T>
+    T ReadAheadBits(size_t count)
+    {
+        size_t byteIndexSaved = _byteIndex;
+        uint8_t bitIndexSaved = _bitIndex;
+        try
+        {
+            T result = ReadBits<T>(count);
+            _byteIndex = byteIndexSaved;
+            _bitIndex = bitIndexSaved;
+            return result;
+        }
+        catch (...)
+        {
+            _byteIndex = byteIndexSaved;
+            _bitIndex = bitIndexSaved;
+            throw;
+        }
+    }
+
+//    uint64_t ReadBits(size_t count);
+//    uint64_t ReadAheadBits(size_t count);
     size_t ByteOffset() { return _byteIndex; }
     ByteIterator Current() { return Begin() +_byteIndex; }
     void SkipBytes(size_t count);

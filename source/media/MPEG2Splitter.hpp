@@ -5,6 +5,7 @@
 #include "media/TSDefinitions.hpp"
 #include "media/IStreamCallback.hpp"
 #include "media/IDecoder.hpp"
+#include "media/StreamType.hpp"
 #include "media/TransportStream.hpp"
 
 namespace Media
@@ -13,11 +14,12 @@ namespace Media
 class MPEG2Splitter : public IStreamCallback
 {
 public:
+    explicit MPEG2Splitter(const std::string & inputPath);
+
     MPEG2Splitter() = delete;
     MPEG2Splitter(const MPEG2Splitter &) = delete;
     MPEG2Splitter & operator= (const MPEG2Splitter &) = delete;
 
-    MPEG2Splitter(const std::string & inputPath, bool verbose);
 
     void SetAudioPID(PIDType pid);
     void SetVideoPID(PIDType pid);
@@ -30,7 +32,6 @@ public:
 
 private:
     std::string _inputPath;
-    bool _verbose;
     PIDType _audioPID;
     PIDType _videoPID;
     std::ifstream _transportStreamFile;

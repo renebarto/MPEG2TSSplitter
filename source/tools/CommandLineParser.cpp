@@ -1,11 +1,12 @@
 #include "tools/CommandLineParser.hpp"
 
-#include <algorithm>
 #include <cstring>
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
+#include <deque>
 #include "tools/Util.hpp"
 
 using namespace std;
@@ -224,6 +225,8 @@ bool CommandLineParser::AtLongOption(size_t argCount, const char ** argv) const
            (('-' == argv[_getOptData.optionIndex][0]) && ('-' == argv[_getOptData.optionIndex][1]));
 }
 
+using OptionsList = std::deque<CommandLineOption::Ptr>;
+
 int CommandLineParser::HandleLongOption(size_t argCount, const char ** argv, const char * optionString,
                                         size_t & optionIndex, bool printErrors)
 {
@@ -231,11 +234,7 @@ int CommandLineParser::HandleLongOption(size_t argCount, const char ** argv, con
     const char * nameEnd;
     size_t nameLength;
     CommandLineOption::Ptr optionFound = nullptr;
-    struct OptionList
-    {
-        CommandLineOption::Ptr option;
-        struct OptionList * next;
-    } * amiguousOptionsList = nullptr;
+    OptionsList ambiguousOptionsList;
 
     bool exact = false;
     size_t indexFound {};
@@ -262,29 +261,21 @@ int CommandLineParser::HandleLongOption(size_t argCount, const char ** argv, con
                 indexFound = currentOptionIndex;
             } else if (currentOption->IsNotEqual(optionFound))
             {
-                struct OptionList *newOption = new OptionList;
-                newOption->option = currentOption;
-                newOption->next = amiguousOptionsList;
-                amiguousOptionsList = newOption;
+                ambiguousOptionsList.push_front(currentOption);
             }
         }
         currentOptionIndex++;
     }
-    if ((nullptr != amiguousOptionsList) && !exact)
+    if (!ambiguousOptionsList.empty() && !exact)
     {
         if (printErrors)
         {
-            struct OptionList first;
-            first.option = optionFound;
-            first.next = amiguousOptionsList;
-            amiguousOptionsList = &first;
+            ambiguousOptionsList.push_front(optionFound);
             _console << fgcolor(Tools::ConsoleColor::Red) << argv[0] << ": option '" << argv[_getOptData.optionIndex] << "' is ambiguous; possibilities:";
-            do
+            for (auto ambiguousOption : ambiguousOptionsList)
             {
-                _console << " '--" << amiguousOptionsList->option->LongName() << "'";
-                amiguousOptionsList = amiguousOptionsList->next;
+                _console << " '--" << ambiguousOption->LongName() << "'";
             }
-            while (nullptr != amiguousOptionsList);
             _console << fgcolor(Tools::ConsoleColor::Default) << endl;
         }
         _getOptData.nextChar += strlen(_getOptData.nextChar);
@@ -613,7 +604,7 @@ string CommandLineParser::GetHelp(const string & applicationName, bool mainHelp 
     string strippedPath = LastPartOfPath(applicationName);
     const int indentOptions = 2;
     const int indentDescription = 25;
-    basic_ostringstream<char> stream;
+    ostringstream stream;
     stream << "Usage:" << endl;
     stream << _name << ": " << _description << endl << endl;
     stream << string(indentOptions, ' ') << strippedPath << " [OPTION...]" << endl << endl;
@@ -660,10 +651,10 @@ void CommandLineParser::FillOptionsList()
 
 void CommandLineParser::SetupStandardGroups()
 {
-    CommandLineOptionGroup::Ptr mainGroup(new CommandLineOptionGroup(_name, _description));
+    CommandLineOptionGroup::Ptr mainGroup = make_shared<CommandLineOptionGroup>(_name, _description);
     AddGroup(mainGroup);
 
-    CommandLineOptionGroup::Ptr helpGroup(new CommandLineOptionGroup(HelpOptionsGroupName));
+    CommandLineOptionGroup::Ptr helpGroup = make_shared<CommandLineOptionGroup>(HelpOptionsGroupName);
     AddGroup(helpGroup);
     helpGroup->AddSwitchWithVariable("help", _showHelp, true, "Show help options");
 

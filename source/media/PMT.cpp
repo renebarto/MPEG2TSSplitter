@@ -1,7 +1,5 @@
 #include "media/PMT.hpp"
 
-#include<iostream>
-#include<iomanip>
 #include "tools/SerializationImpl.hpp"
 #include "tools/Console.hpp"
 #include "media/IStreamCallback.hpp"
@@ -11,6 +9,14 @@ using namespace Media;
 
 PMT::PMT(IStreamCallback * streamInfoCallback)
     : _streamInfoCallback(streamInfoCallback)
+    , _tableID()
+    , _sectionLength()
+    , _needMoreData(true)
+    , _versionNumber()
+    , _current()
+    , _sectionNumber()
+    , _lastSectionNumber()
+    , _crc()
     , _programNumber()
     , _pcrPID()
     , _programInfoLength()
@@ -19,31 +25,31 @@ PMT::PMT(IStreamCallback * streamInfoCallback)
 
 }
 
-bool PMT::Parse(std::vector<uint8_t> & data)
+bool PMT::Parse(ByteIterator start, ByteIterator end)
 {
-    Tools::BitBuffer buffer(data.begin(), data.end());
-    _tableID = static_cast<TableID>(buffer.ReadBits(8));
+    Tools::BitBuffer buffer(start, end);
+    _tableID = static_cast<TableID>(buffer.ReadBits<uint8_t>(8));
     if (_tableID != TableID::PMT)
         return false;
     if (!buffer.ReadBit())  // section_syntax_indicator
         return false;
     if (buffer.ReadBit())   // '0'
         return false;
-    buffer.ReadBits(2);     // Reserved xx
-    _sectionLength = static_cast<uint16_t>(buffer.ReadBits(12));
+    buffer.ReadBits<uint8_t>(2);     // Reserved xx
+    _sectionLength = buffer.ReadBits<uint16_t>(12);
     _needMoreData = (buffer.BytesLeft() < _sectionLength);
     if (_needMoreData)
         return false;
-    _programNumber = static_cast<uint16_t>(buffer.ReadBits(16));
-    buffer.ReadBits(2);     // Reserved xx
-    _versionNumber = static_cast<uint8_t>(buffer.ReadBits(5));
+    _programNumber = buffer.ReadBits<uint16_t>(16);
+    buffer.ReadBits<uint8_t>(2);     // Reserved xx
+    _versionNumber = buffer.ReadBits<uint8_t>(5);
     _current = buffer.ReadBit();
-    _sectionNumber = static_cast<uint8_t>(buffer.ReadBits(8));
-    _lastSectionNumber = static_cast<uint8_t>(buffer.ReadBits(8));
-    buffer.ReadBits(3);     // Reserved xxx
-    _pcrPID = static_cast<PIDType>(buffer.ReadBits(13));
-    buffer.ReadBits(4);     // Reserved xxxx
-    _programInfoLength = static_cast<uint16_t>(buffer.ReadBits(12));
+    _sectionNumber = buffer.ReadBits<uint8_t>(8);
+    _lastSectionNumber = buffer.ReadBits<uint8_t>(8);
+    buffer.ReadBits<uint8_t>(3);     // Reserved xxx
+    _pcrPID = static_cast<PIDType>(buffer.ReadBits<uint16_t>(13));
+    buffer.ReadBits<uint8_t>(4);     // Reserved xxxx
+    _programInfoLength = buffer.ReadBits<uint16_t>(12);
     size_t programInfoStartOffset = buffer.ByteOffset();
     while (buffer.ByteOffset() - programInfoStartOffset < _programInfoLength)
     {
@@ -55,7 +61,7 @@ bool PMT::Parse(std::vector<uint8_t> & data)
         if (!ParseStreamInfo(buffer))
             return false;
     }
-    _crc = static_cast<uint32_t>(buffer.ReadBits(32));
+    _crc = buffer.ReadBits<uint32_t>(32);
     return IsValid();
 }
 
@@ -86,46 +92,6 @@ bool PMT::IsValid() const
            (_sectionNumber == 0x00) &&
            (_lastSectionNumber == 0x00) &&
            ((_programInfoLength & 0xFC00) == 0x0000); // program_info_length = 0000 00xx xxxx xxxx;
-}
-
-bool PMT::HaveAudio() const
-{
-    for (auto & streamInfo : _streamInfo.streamInfo)
-    {
-        if (streamInfo.IsAudioStream())
-            return true;
-    }
-    return false;
-}
-
-bool PMT::HaveVideo() const
-{
-    for (auto & streamInfo : _streamInfo.streamInfo)
-    {
-        if (streamInfo.IsVideoStream())
-            return true;
-    }
-    return false;
-}
-
-PIDType PMT::GetAudioPID() const
-{
-    for (auto & streamInfo : _streamInfo.streamInfo)
-    {
-        if (streamInfo.IsAudioStream())
-            return streamInfo.PID();
-    }
-    return PIDType::NULL_PACKET;
-}
-
-PIDType PMT::GetVideoPID() const
-{
-    for (auto & streamInfo : _streamInfo.streamInfo)
-    {
-        if (streamInfo.IsVideoStream())
-            return streamInfo.PID();
-    }
-    return PIDType::NULL_PACKET;
 }
 
 void PMT::DisplayContents() const

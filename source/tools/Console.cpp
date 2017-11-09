@@ -1,30 +1,33 @@
 #include <unistd.h>
+#include <iostream>
 #include "tools/Console.hpp"
+
+using namespace std;
 
 namespace Tools {
 
-inline std::ostream * DetermineStream(int handle)
+inline ostream * DetermineStream(int handle)
 {
     switch (handle)
     {
         case STDOUT_FILENO:
-            return &std::cout;
+            return &cout;
         case STDERR_FILENO:
-            return &std::cerr;
+            return &cerr;
         case STDIN_FILENO:
         default:
-            std::cerr << "Invalid handle specified, please specify only stdout or stderr handle" << std::endl;
+            cerr << "Invalid handle specified, please specify only stdout or stderr handle" << endl;
     }
     return nullptr;
 }
 
-inline int DetermineHandle(std::ostream * stream)
+inline int DetermineHandle(ostream * stream)
 {
-    if (stream == &std::cout)
+    if (stream == &cout)
     {
         return fileno(stdout);
     }
-    else if (stream == &std::cerr)
+    else if (stream == &cerr)
     {
         return fileno(stderr);
     }
@@ -74,7 +77,7 @@ Console::Console(int handle)
 {
 }
 
-Console::Console(std::ostream & stream)
+Console::Console(ostream & stream)
     : _stream(&stream)
     , _handle(DetermineHandle(&stream))
     , _currentForegroundColor(ConsoleColor::Default)
@@ -86,7 +89,7 @@ void Console::SetTerminalColor(ConsoleColor foregroundColor, ConsoleColor backgr
 {
     if (!ShouldUseColor())
         return;
-    std::string command = "\033[0";
+    string command = "\033[0";
     if (foregroundColor != ConsoleColor::Default)
     {
         if ((static_cast<ConsoleColor>(static_cast<int16_t>(foregroundColor) &
@@ -127,7 +130,7 @@ bool Console::ShouldUseColor()
     const char * termSetting = getenv("TERM");
     if (termSetting == nullptr)
         return false;
-    std::string term = termSetting;
+    string term = termSetting;
     const bool term_supports_color =
     (term == "xterm") ||
     (term == "xterm-color") ||

@@ -1,20 +1,19 @@
 #include "media/TransportStream.hpp"
 
-#include <iomanip>
 #include "tools/Util.hpp"
 #include "tools/Console.hpp"
 #include "media/PATHandler.hpp"
 #include "media/CATHandler.hpp"
 #include "media/TSDTHandler.hpp"
 #include "media/ICITHandler.hpp"
+#include "media/Logging.hpp"
 
 using namespace std;
 using namespace Media;
 
-TransportStream::TransportStream(istream & stream, IStreamCallback * callback, bool verbose)
+TransportStream::TransportStream(istream & stream, IStreamCallback * callback)
     : _stream(stream)
     , _callback(callback)
-    , _verbose(verbose)
     , _packetIndex()
     , _streamMap()
     , _TSBuffer(TSPacket::PacketSize)
@@ -24,19 +23,24 @@ TransportStream::TransportStream(istream & stream, IStreamCallback * callback, b
 
 void TransportStream::Initialize()
 {
-    _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::PAT, make_shared<PATHandler>(_callback, _verbose)));
+    _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::PAT, make_shared<PATHandler>(_callback)));
     _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::CAT, make_shared<CATHandler>()));
     _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::TSDT, make_shared<TSDTHandler>()));
     _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(PIDType::ICIT, make_shared<ICITHandler>()));
 }
 
+bool TransportStream::HaveHandlerForPID(PIDType pid) const
+{
+    return (_streamMap.find(pid) != _streamMap.end());
+}
+
 void TransportStream::AddStreamHandler(PIDType pid, IPIDDataHandler::Ptr handler)
 {
-    if (_streamMap.find(pid) == _streamMap.end())
+    if (!HaveHandlerForPID(pid))
         _streamMap.insert(pair<PIDType, IPIDDataHandler::Ptr>(pid, handler));
 }
 
-bool TransportStream::ReadPacket(TSPacket & packet)
+bool TransportStream::ReadPacket()
 {
     size_t bytesLeft = TSPacket::PacketSize;
     size_t offset = 0;
@@ -57,7 +61,7 @@ bool TransportStream::ParsePacket(TSPacket & packet)
 {
     if (!packet.Parse(_TSBuffer))
         return false;
-    if (_verbose)
+    if (VerboseLogging())
     {
         Tools::DumpBytes(_TSBuffer.begin(), _TSBuffer.end());
         packet.DisplayContents(_packetIndex);

@@ -1,17 +1,18 @@
 #include "PMTHandler.hpp"
 
+#include "Logging.hpp"
+
 using namespace Media;
 
-PMTHandler::PMTHandler(IStreamCallback * streamInfoCallback, bool verbose)
+PMTHandler::PMTHandler(IStreamCallback * streamInfoCallback)
     : _streamInfoCallback(streamInfoCallback)
-    , _verbose(verbose)
     , _buffer()
     , _PMT(streamInfoCallback)
 {
 
 }
 
-bool PMTHandler::Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator)
+bool PMTHandler::Parse(ByteIterator start, ByteIterator end, bool hasStartIndicator)
 {
     if (hasStartIndicator)
     {
@@ -22,9 +23,9 @@ bool PMTHandler::Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool 
         --end;
 
     _buffer.insert(_buffer.end(), start, end);
-    if (_PMT.Parse(_buffer))
+    if (_PMT.Parse(_buffer.begin(), _buffer.end()))
     {
-        if (_verbose)
+        if (VerboseLogging())
             _PMT.DisplayContents();
         _buffer.clear();
     }

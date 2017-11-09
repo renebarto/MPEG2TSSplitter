@@ -1,9 +1,7 @@
 #include "media/PAT.hpp"
 
-#include<iostream>
 #include<iomanip>
 #include "tools/SerializationImpl.hpp"
-#include "tools/BitBuffer.hpp"
 #include "tools/Console.hpp"
 #include "media/IStreamCallback.hpp"
 #include "media/StreamInfo.hpp"
@@ -14,39 +12,47 @@ using namespace Media;
 static constexpr PIDType DefaultPID_NIT = static_cast<PIDType>(0x0010);
 PAT::PAT(IStreamCallback * streamInfoCallback)
     : _streamInfoCallback(streamInfoCallback)
+    , _tableID()
+    , _sectionLength()
+    , _needMoreData(true)
+    , _versionNumber()
+    , _current()
+    , _sectionNumber()
+    , _lastSectionNumber()
+    , _crc()
     , _transportStreamID()
     , _programInfo()
 {
 
 }
 
-bool PAT::Parse(std::vector<uint8_t> & data)
+bool PAT::Parse(ByteIterator start, ByteIterator end)
 {
-    Tools::BitBuffer buffer(data.begin(), data.end());
-    _tableID = static_cast<TableID>(buffer.ReadBits(8));
+    Tools::BitBuffer buffer(start, end);
+    _tableID = static_cast<TableID>(buffer.ReadBits<uint8_t>(8));
     if (_tableID != TableID::PAT)
         return false;
     if (!buffer.ReadBit())  // section_syntax_indicator
         return false;
     if (buffer.ReadBit())   // '0'
         return false;
-    buffer.ReadBits(2);     // Reserved xx
-    _sectionLength = static_cast<uint16_t>(buffer.ReadBits(12));
+    buffer.ReadBits<uint8_t>(2);     // Reserved xx
+    _sectionLength = buffer.ReadBits<uint16_t>(12);
     _needMoreData = (buffer.BytesLeft() < _sectionLength);
     if (_needMoreData)
         return false;
-    _transportStreamID = static_cast<uint16_t>(buffer.ReadBits(16));
-    buffer.ReadBits(2);     // Reserved xx
-    _versionNumber = static_cast<uint8_t>(buffer.ReadBits(5));
+    _transportStreamID = buffer.ReadBits<uint16_t>(16);
+    buffer.ReadBits<uint8_t>(2);     // Reserved xx
+    _versionNumber = buffer.ReadBits<uint8_t>(5);
     _current = buffer.ReadBit();
-    _sectionNumber = static_cast<uint8_t>(buffer.ReadBits(8));
-    _lastSectionNumber = static_cast<uint8_t>(buffer.ReadBits(8));
+    _sectionNumber = buffer.ReadBits<uint8_t>(8);
+    _lastSectionNumber = buffer.ReadBits<uint8_t>(8);
     for (uint8_t section = _sectionNumber; section <= _lastSectionNumber; ++section)
     {
         ProgramAssociation info {};
-        info.programNumber = static_cast<uint16_t>(buffer.ReadBits(16));
-        buffer.ReadBits(3);     // Reserved xxx
-        info.pid = static_cast<PIDType>(buffer.ReadBits(13));
+        info.programNumber = buffer.ReadBits<uint16_t>(16);
+        buffer.ReadBits<uint8_t>(3);     // Reserved xxx
+        info.pid = static_cast<PIDType>(buffer.ReadBits<uint16_t>(13));
         _programInfo.push_back(info);
         if (_streamInfoCallback)
         {
@@ -60,7 +66,7 @@ bool PAT::Parse(std::vector<uint8_t> & data)
             _streamInfoCallback->OnStreamFound(PIDKind::PMT, streamInfo);
         }
     }
-    _crc = static_cast<uint32_t>(buffer.ReadBits(32));
+    _crc = buffer.ReadBits<uint32_t>(32);
     return IsValid();
 }
 

@@ -1,4 +1,4 @@
 .idea/
-cmake-build-debug/
-elephants.ts
-
+cmake-build-*/
+elephants.ts*
+build/

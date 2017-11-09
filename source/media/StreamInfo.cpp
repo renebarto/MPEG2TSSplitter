@@ -22,11 +22,11 @@ StreamInfo::StreamInfo(PIDType pid)
 
 bool StreamInfo::Parse(Tools::BitBuffer & buffer)
 {
-    _type = static_cast<StreamType>(buffer.ReadBits(8));
-    buffer.ReadBits(3);     // Reserved xxx
-    _pid = static_cast<PIDType>(buffer.ReadBits(13));
-    buffer.ReadBits(4);     // Reserved xxxx
-    uint16_t info_length = static_cast<uint16_t>(buffer.ReadBits(12));
+    _type = static_cast<StreamType>(buffer.ReadBits<uint8_t>(8));
+    buffer.ReadBits<uint8_t>(3);     // Reserved xxx
+    _pid = static_cast<PIDType>(buffer.ReadBits<uint16_t>(13));
+    buffer.ReadBits<uint8_t>(4);     // Reserved xxxx
+    uint16_t info_length = buffer.ReadBits<uint16_t>(12);
     size_t programInfoStartOffset = buffer.ByteOffset();
     while (buffer.ByteOffset() - programInfoStartOffset < info_length)
     {

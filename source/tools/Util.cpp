@@ -3,10 +3,11 @@
 #include <cstddef>
 #include <climits>
 #include <cctype>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-#include <cstring>
+#include "tools/Definitions.hpp"
 #include "tools/Console.hpp"
 #include "SerializationImpl.hpp"
 

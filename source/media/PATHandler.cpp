@@ -1,17 +1,18 @@
 #include "PATHandler.hpp"
 
+#include "Logging.hpp"
+
 using namespace Media;
 
-PATHandler::PATHandler(IStreamCallback * streamInfoCallback, bool verbose)
+PATHandler::PATHandler(IStreamCallback * streamInfoCallback)
     : _streamInfoCallback(streamInfoCallback)
-    , _verbose(verbose)
     , _buffer()
     , _PAT(streamInfoCallback)
 {
 
 }
 
-bool PATHandler::Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator)
+bool PATHandler::Parse(ByteIterator start, ByteIterator end, bool hasStartIndicator)
 {
     if (hasStartIndicator)
     {
@@ -22,9 +23,9 @@ bool PATHandler::Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool 
         --end;
 
     _buffer.insert(_buffer.end(), start, end);
-    if (_PAT.Parse(_buffer))
+    if (_PAT.Parse(_buffer.begin(), _buffer.end()))
     {
-        if (_verbose)
+        if (VerboseLogging())
             _PAT.DisplayContents();
         _buffer.clear();
     }

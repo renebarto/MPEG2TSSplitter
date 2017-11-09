@@ -12,13 +12,12 @@ class IStreamCallback;
 class PMTHandler : public IPIDDataHandler
 {
 public:
-    PMTHandler(IStreamCallback * streamInfoCallback, bool verbose);
+    PMTHandler(IStreamCallback * streamInfoCallback);
 
-    bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator) override;
+    bool Parse(ByteIterator start, ByteIterator end, bool hasStartIndicator) override;
 
 private:
     IStreamCallback * _streamInfoCallback;
-    bool _verbose;
     std::vector<uint8_t> _buffer;
     PMT _PMT; // Program Map Table
 };

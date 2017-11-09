@@ -14,13 +14,12 @@ class IDecoder;
 class PATHandler : public IPIDDataHandler
 {
 public:
-    PATHandler(IStreamCallback * streamInfoCallback, bool verbose);
+    PATHandler(IStreamCallback * streamInfoCallback);
 
-    bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator) override;
+    bool Parse(ByteIterator start, ByteIterator end, bool hasStartIndicator) override;
 
 private:
     IStreamCallback * _streamInfoCallback;
-    bool _verbose;
     std::vector<uint8_t> _buffer;
     PAT _PAT; // Program Association Table
 };

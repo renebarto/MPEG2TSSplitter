@@ -12,7 +12,8 @@ class NITHandler : public IPIDDataHandler
 public:
     NITHandler() {}
 
-    bool Parse(Tools::ByteIterator start, Tools::ByteIterator end, bool hasStartIndicator) override
+    bool Parse(ByteIterator start PARAMETER_NOT_USED, ByteIterator end PARAMETER_NOT_USED,
+               bool hasStartIndicator PARAMETER_NOT_USED) override
     {
         throw std::logic_error("NIT not implemented");
     }

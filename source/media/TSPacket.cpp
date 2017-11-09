@@ -38,18 +38,18 @@ bool TSPacket::Parse(const std::vector<uint8_t> & buffer)
     if (buffer.size() != PacketSize)
         throw std::runtime_error("Incorrect packet size");
 
-    _packetHeader = static_cast<uint32_t>(data.ReadBits(32));
+    _packetHeader = data.ReadBits<uint32_t>(32);
     data.Reset();
-    if (static_cast<uint8_t>(data.ReadBits(8)) != SyncByte)
+    if (data.ReadBits<uint8_t>(8) != SyncByte)
         return false;
     _transportErrorIndicator = data.ReadBit();
     _payloadUnitStartIndicator = data.ReadBit();
     _transportPriority = data.ReadBit();
-    _pid = static_cast<PIDType>(data.ReadBits(13));
-    _scramblingControl = static_cast<ScrambingControl>(data.ReadBits(2));
-    _adaptationFieldControl = static_cast<AdaptationFieldControlType>(data.ReadBits(2));
-    _continuityCount = static_cast<uint8_t>(data.ReadBits(4));
-    _adaptationFieldSize = HasAdaptationField() ? static_cast<uint8_t>(data.ReadBits(8)) : static_cast<uint8_t>(0);
+    _pid = static_cast<PIDType>(data.ReadBits<uint16_t>(13));
+    _scramblingControl = static_cast<ScrambingControl>(data.ReadBits<uint8_t>(2));
+    _adaptationFieldControl = static_cast<AdaptationFieldControlType>(data.ReadBits<uint8_t>(2));
+    _continuityCount = data.ReadBits<uint8_t>(4);
+    _adaptationFieldSize = HasAdaptationField() ? data.ReadBits<uint8_t>(8) : static_cast<uint8_t>(0);
     if (!IsValid())
         return false;
     if (HasAdaptationField() && !ParseAdaptationField(data))
@@ -150,7 +150,7 @@ uint8_t TSPacket::PayloadStartOffset() const
 bool TSPacket::ParseAdaptationField(Tools::BitBuffer & data)
 {
     _discontinuityIndicator = data.ReadBit();
-    data.ReadBits(7);
+    data.ReadBits<uint8_t>(7);
     data.SkipBytes(static_cast<size_t>(_adaptationFieldSize - 1));
     return true;
 }

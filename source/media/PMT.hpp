@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "media/PSI.hpp"
+#include "media/ProgramDescriptor.hpp"
 #include "media/StreamInfo.hpp"
 
 namespace Media
@@ -18,24 +18,27 @@ struct ElementaryStreamInfo
     StreamInfoList streamInfo;
 };
 
-class PMT : public PSI
+class PMT
 {
 public:
     PMT(IStreamCallback * streamInfoCallback);
 
-    bool Parse(std::vector<uint8_t> & data) override;
-    bool IsValid() const override;
+    bool Parse(ByteIterator start, ByteIterator end);
+    bool IsValid() const;
+    bool NeedMoreData() const { return _needMoreData; }
 
-    bool HaveAudio() const;
-    bool HaveVideo() const;
-
-    PIDType GetAudioPID() const;
-    PIDType GetVideoPID() const;
-
-    void DisplayContents() const override;
+    void DisplayContents() const;
 
 private:
     IStreamCallback * _streamInfoCallback;
+    TableID _tableID;
+    uint16_t _sectionLength;
+    bool _needMoreData;
+    uint8_t _versionNumber;
+    bool _current;
+    uint8_t _sectionNumber;
+    uint8_t _lastSectionNumber;
+    uint32_t _crc;
     uint16_t _programNumber;
     PIDType _pcrPID;
     uint16_t _programInfoLength;

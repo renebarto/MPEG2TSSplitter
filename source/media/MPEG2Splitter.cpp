@@ -1,27 +1,22 @@
 #include "media/MPEG2Splitter.hpp"
 
-#include <fstream>
-#include <iostream>
 #include "tools/Console.hpp"
 #include "tools/SerializationImpl.hpp"
-#include "media/TSPacket.hpp"
-#include "media/TransportStream.hpp"
 #include "media/StreamWriter.hpp"
-#include "NITHandler.hpp"
+#include "media/NITHandler.hpp"
 
 using namespace std;
 using namespace Media;
 using namespace Tools;
 
-MPEG2Splitter::MPEG2Splitter(const std::string & inputPath, bool verbose)
+MPEG2Splitter::MPEG2Splitter(const std::string & inputPath)
     : _inputPath(inputPath)
-    , _verbose(verbose)
     , _audioPID(PIDType::NULL_PACKET)
     , _videoPID(PIDType::NULL_PACKET)
     , _transportStreamFile()
     , _audioStream()
     , _videoStream()
-    , _transportStream(_transportStreamFile, this, verbose)
+    , _transportStream(_transportStreamFile, this)
 {
 }
 
@@ -37,22 +32,24 @@ void MPEG2Splitter::SetVideoPID(PIDType pid)
 
 void MPEG2Splitter::OnStreamFound(PIDKind kind, const StreamInfo & info)
 {
-    DefaultConsole() << fgcolor(ConsoleColor::Cyan) << "Stream Callback stream type: " << info.Type()
-                     << " pid: " << Serialize(static_cast<uint16_t>(info.PID()), 16) << fgcolor(ConsoleColor::Default) << endl;
     if ((_audioPID == PIDType::NULL_PACKET) && info.IsAudioStream())
     {
+        DefaultConsole() << fgcolor(ConsoleColor::Cyan) << "Stream type: " << info.Type()
+                         << " pid: " << Serialize(static_cast<uint16_t>(info.PID()), 16) << fgcolor(ConsoleColor::Default) << endl;
         _audioPID = info.PID();
         _audioDecoder = CreateAudioDecoder(info.Type());
-        auto handler = make_shared<AudioStreamHandler>(_audioDecoder, this, _verbose);
+        auto handler = make_shared<AudioStreamHandler>(_audioDecoder);
         _transportStream.AddStreamHandler(info.PID(), dynamic_pointer_cast<IPIDDataHandler>(handler));
         Tools::DefaultConsole() << "Using audio PID " << hex << setw(4) << setfill('0') << static_cast<uint16_t>(_audioPID)
                                 << dec << endl;
     }
     else if ((_videoPID == PIDType::NULL_PACKET) && info.IsVideoStream())
     {
+        DefaultConsole() << fgcolor(ConsoleColor::Cyan) << "Stream type: " << info.Type()
+                         << " pid: " << Serialize(static_cast<uint16_t>(info.PID()), 16) << fgcolor(ConsoleColor::Default) << endl;
         _videoPID = info.PID();
         _videoDecoder = CreateVideoDecoder(info.Type());
-        auto handler = make_shared<VideoStreamHandler>(_videoDecoder, this, _verbose);
+        auto handler = make_shared<VideoStreamHandler>(_videoDecoder);
         _transportStream.AddStreamHandler(info.PID(), dynamic_pointer_cast<IPIDDataHandler>(handler));
         Tools::DefaultConsole() << "Using video PID " << hex << setw(4) << setfill('0') << static_cast<uint16_t>(_videoPID)
                                 << dec << endl;
@@ -70,10 +67,12 @@ void MPEG2Splitter::OnStreamFound(PIDKind kind, const StreamInfo & info)
             case PIDKind::ICIT:     // ICIT is already handled
                 break;
             case PIDKind::PMT:
-                _transportStream.AddStreamHandler(info.PID(), make_shared<PMTHandler>(this, _verbose));
+                if (!_transportStream.HaveHandlerForPID(info.PID()))
+                    _transportStream.AddStreamHandler(info.PID(), make_shared<PMTHandler>(this));
                 break;
             case PIDKind::NIT:
-                _transportStream.AddStreamHandler(info.PID(), make_shared<NITHandler>());
+                if (!_transportStream.HaveHandlerForPID(info.PID()))
+                    _transportStream.AddStreamHandler(info.PID(), make_shared<NITHandler>());
                 break;
             case PIDKind::PES:
                 break;
@@ -116,7 +115,6 @@ IDecoder::Ptr MPEG2Splitter::CreateVideoDecoder(StreamType type)
 int MPEG2Splitter::Run()
 {
     _transportStream.Initialize();
-    TSPacket tsPacket;
     _transportStreamFile.open(_inputPath);
     if (!_transportStreamFile.is_open())
     {
@@ -124,11 +122,12 @@ int MPEG2Splitter::Run()
         return EXIT_FAILURE;
     }
 
-    bool havePacket = _transportStream.ReadPacket(tsPacket);
+    bool havePacket = _transportStream.ReadPacket();
     while (havePacket)
     {
+        TSPacket tsPacket;
         _transportStream.ParsePacket(tsPacket);
-        havePacket = _transportStream.ReadPacket(tsPacket);
+        havePacket = _transportStream.ReadPacket();
     }
     _audioStream.flush();
     _videoStream.flush();

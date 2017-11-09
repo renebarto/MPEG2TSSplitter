@@ -13,26 +13,32 @@ OBJS_MPEG2TS_SPLITTER = $(patsubst %.cpp,$(BUILDDIR)/%.o, $(notdir $(SOURCES_MPE
 
 SOURCES_TOOLS := \
 	tools/BitBuffer.cpp \
-	tools/Util.cpp \
-	tools/CommandLineParser.cpp \
 	tools/CommandLineOption.cpp \
 	tools/CommandLineOptionGroup.cpp \
+	tools/CommandLineParser.cpp \
 	tools/Console.cpp \
 	tools/DeserializationImpl.cpp \
-	tools/SerializationImpl.cpp
+	tools/SerializationImpl.cpp \
+	tools/Stopwatch.cpp \
+	tools/Util.cpp
 SOURCE_DIRS_TOOLS := $(sort $(dir $(SOURCES_TOOLS)))
 OBJS_TOOLS = $(patsubst %.cpp,$(BUILDDIR)/%.o, $(SOURCES_TOOLS))
 
 SOURCES_MEDIA := \
+	media/AudioStreamHandler.cpp \
+	media/Logging.cpp \
 	media/MPEG2Splitter.cpp \
-	media/TransportStream.cpp \
-	media/TSPacket.cpp \
-	media/PESPacket.cpp \
 	media/PAT.cpp \
+	media/PATHandler.cpp \
+	media/PESPacket.cpp \
 	media/PMT.cpp \
+	media/PMTHandler.cpp \
 	media/ProgramDescriptor.cpp \
 	media/StreamInfo.cpp \
-	media/StreamWriter.cpp
+	media/StreamWriter.cpp \
+	media/TransportStream.cpp \
+	media/TSPacket.cpp \
+	media/VideoStreamHandler.cpp
 SOURCE_DIRS_MEDIA := $(sort $(dir $(SOURCES_MEDIA)))
 OBJS_MEDIA = $(patsubst %.cpp,$(BUILDDIR)/%.o, $(SOURCES_MEDIA))
 
@@ -63,20 +69,13 @@ media : $(OBJS_MEDIA)
 vpath %.cpp $(SOURCE_DIRS_MPEG2TS_SPLITTER)
 
 $(OBJS_MPEG2TS_SPLITTER): $(BUILDDIR)/%.o: %.cpp
-	$(info $$< is [$<])
-	$(info $$@ is [$@])
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJS_TOOLS): $(BUILDDIR)/%.o: %.cpp
-	$(info $$< is [$<])
-	$(info $$@ is [$@])
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJS_MEDIA): $(BUILDDIR)/%.o: %.cpp
-	$(info $$< is [$<])
-	$(info $$@ is [$@])
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
 
 clean :
 	rm -rf $(BUILDDIR)

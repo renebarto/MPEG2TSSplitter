@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <string>
 #include "tools/Console.hpp"
-#include <tools/Stopwatch.hpp>
+#include "tools/Stopwatch.hpp"
 #include "media/MPEG2Splitter.hpp"
 
 using namespace std;
@@ -57,7 +56,7 @@ TEST_F(MPEG2SplitterTest, TestRun)
     unlink(outputAudioPath.c_str());
     unlink(outputVideoPath.c_str());
     stopwatch.Start();
-    MPEG2Splitter splitter(string(TEST_DATA_ROOT) + "/elephants.ts", false);
+    MPEG2Splitter splitter(string(TEST_DATA_ROOT) + "/elephants.ts");
     splitter.Run();
     stopwatch.Lap();
     AssertFilesEqual(string(TEST_DATA_ROOT) + "/elephants.ts.mp4.ref", outputVideoPath);

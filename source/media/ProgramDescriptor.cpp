@@ -1,6 +1,5 @@
 #include "media/ProgramDescriptor.hpp"
 
-#include <iomanip>
 #include "tools/Util.hpp"
 #include "tools/Console.hpp"
 #include "tools/SerializationImpl.hpp"
@@ -17,11 +16,11 @@ ProgramDescriptor::ProgramDescriptor()
 
 bool ProgramDescriptor::Parse(Tools::BitBuffer & buffer)
 {
-    _tag = static_cast<ProgramDescriptorTag>(buffer.ReadBits(8));
-    _length = static_cast<uint8_t>(buffer.ReadBits(8));
+    _tag = static_cast<ProgramDescriptorTag>(buffer.ReadBits<uint8_t>(8));
+    _length = buffer.ReadBits<uint8_t>(8);
     _data.clear();
     for (size_t index = 0; index < _length; ++index)
-        _data.push_back(static_cast<uint8_t>(buffer.ReadBits(8)));
+        _data.push_back(buffer.ReadBits<uint8_t>(8));
     return true;
 }
 

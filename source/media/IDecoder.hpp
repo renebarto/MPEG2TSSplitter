@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <tools/Definitions.hpp>
 #include <tools/BitBuffer.hpp>
 
 namespace Media
@@ -16,7 +17,7 @@ public:
     IDecoder() = default;
     virtual ~IDecoder() = default;
 
-    virtual void FeedData(Tools::ByteIterator data, size_t size) = 0;
+    virtual void FeedData(ByteIterator data, size_t size) = 0;
 };
 
 } // namespace Media

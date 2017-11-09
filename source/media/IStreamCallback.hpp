@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include "media/TSDefinitions.hpp"
 
 namespace Media
 {

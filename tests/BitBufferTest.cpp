@@ -85,40 +85,36 @@ TEST_F(BitBufferTest, ReadBits)
     EXPECT_EQ(size_t {9}, buffer.BytesLeft());
     EXPECT_EQ(size_t {72}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {1}, buffer.ReadBits(1));
+    EXPECT_EQ(uint8_t {1}, buffer.ReadBits<uint8_t>(1));
     EXPECT_EQ(size_t {8}, buffer.BytesLeft());
     EXPECT_EQ(size_t {71}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {1}, buffer.ReadBits(2));
+    EXPECT_EQ(uint8_t {1}, buffer.ReadBits<uint8_t>(2));
     EXPECT_EQ(size_t {8}, buffer.BytesLeft());
     EXPECT_EQ(size_t {69}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {2}, buffer.ReadBits(3));
+    EXPECT_EQ(uint8_t {2}, buffer.ReadBits<uint8_t>(3));
     EXPECT_EQ(size_t {8}, buffer.BytesLeft());
     EXPECT_EQ(size_t {66}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {0xAA}, buffer.ReadBits(8));
+    EXPECT_EQ(uint8_t {0xAA}, buffer.ReadBits<uint8_t>(8));
     EXPECT_EQ(size_t {7}, buffer.BytesLeft());
     EXPECT_EQ(size_t {58}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {0xAAAA}, buffer.ReadBits(16));
+    EXPECT_EQ(uint16_t {0xAAAA}, buffer.ReadBits<uint16_t>(16));
     EXPECT_EQ(size_t {5}, buffer.BytesLeft());
     EXPECT_EQ(size_t {42}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {0xAAAAAAAA}, buffer.ReadBits(32));
+    EXPECT_EQ(uint32_t {0xAAAAAAAA}, buffer.ReadBits<uint32_t>(32));
     EXPECT_EQ(size_t {1}, buffer.BytesLeft());
     EXPECT_EQ(size_t {10}, buffer.BitsLeft());
 
-    EXPECT_THROW(buffer.ReadBits(64), std::runtime_error);
+    EXPECT_THROW(buffer.ReadBits<uint64_t>(64), std::runtime_error);
     buffer.Reset();
 
-    EXPECT_EQ(uint64_t {0xAAAAAAAAAAAAAAAA}, buffer.ReadBits(64));
+    EXPECT_EQ(uint64_t {0xAAAAAAAAAAAAAAAA}, buffer.ReadBits<uint64_t>(64));
     EXPECT_EQ(size_t {1}, buffer.BytesLeft());
     EXPECT_EQ(size_t {8}, buffer.BitsLeft());
-
-    buffer.Reset();
-
-    EXPECT_THROW(buffer.ReadBits(65), std::runtime_error);
 }
 
 TEST_F(BitBufferTest, ReadAheadBits)
@@ -130,19 +126,19 @@ TEST_F(BitBufferTest, ReadAheadBits)
     EXPECT_EQ(size_t {9}, buffer.BytesLeft());
     EXPECT_EQ(size_t {72}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {0x01}, buffer.ReadAheadBits(1));
+    EXPECT_EQ(uint8_t {0x01}, buffer.ReadAheadBits<uint8_t>(1));
     EXPECT_EQ(size_t {9}, buffer.BytesLeft());
     EXPECT_EQ(size_t {72}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {0x02}, buffer.ReadAheadBits(2));
+    EXPECT_EQ(uint8_t {0x02}, buffer.ReadAheadBits<uint8_t>(2));
     EXPECT_EQ(size_t {9}, buffer.BytesLeft());
     EXPECT_EQ(size_t {72}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {0xAAAAAAAAAAAAAAAA}, buffer.ReadBits(64));
+    EXPECT_EQ(uint64_t {0xAAAAAAAAAAAAAAAA}, buffer.ReadBits<uint64_t>(64));
     EXPECT_EQ(size_t {1}, buffer.BytesLeft());
     EXPECT_EQ(size_t {8}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {0x55}, buffer.ReadAheadBits(8));
+    EXPECT_EQ(uint8_t {0x55}, buffer.ReadAheadBits<uint8_t>(8));
     EXPECT_EQ(size_t {1}, buffer.BytesLeft());
     EXPECT_EQ(size_t {8}, buffer.BitsLeft());
 }
@@ -156,7 +152,7 @@ TEST_F(BitBufferTest, SkipBytes)
     EXPECT_EQ(size_t {9}, buffer.BytesLeft());
     EXPECT_EQ(size_t {72}, buffer.BitsLeft());
 
-    EXPECT_EQ(uint64_t {0x01}, buffer.ReadBits(1));
+    EXPECT_EQ(uint64_t {0x01}, buffer.ReadBits<uint8_t>(1));
     EXPECT_EQ(size_t {8}, buffer.BytesLeft());
     EXPECT_EQ(size_t {71}, buffer.BitsLeft());
 

@@ -1,4 +1,4 @@
-project(MPEG2TS-splitter-test)
+project(mpeg2ts-splitter-test)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

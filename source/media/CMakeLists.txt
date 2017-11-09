@@ -47,7 +47,7 @@ set(MEDIA_LIB_SOURCES
 
 set(MEDIA_LIB_INPUT
     ${MEDIA_LIB_SOURCES}
-    ${MEDIA_LIB_INCLUDES})
+    ${MEDIA_LIB_INCLUDES} Logging.hpp Logging.cpp)
 
 display_list("Defines                     : " ${MEDIA_LIB_DEFINITIONS} )
 display_list("Compiler options            : " ${MEDIA_LIB_OPTIONS} )
